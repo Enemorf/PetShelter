@@ -21,6 +21,10 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
 
 		<dependency>
 			<groupId>org.liquibase</groupId>
@@ -62,8 +66,8 @@
 			<artifactId>thumbnailator</artifactId>
 			<version>0.4.8</version>
 		</dependency>
-
-			<groupId>org.telegram</groupId>
+	<dependency>
+		<groupId>org.telegram</groupId>
 			<artifactId>telegrambots</artifactId>
 			<version>6.8.0</version>
 		</dependency>

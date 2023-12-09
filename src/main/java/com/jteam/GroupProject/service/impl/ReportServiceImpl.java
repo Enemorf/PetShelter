@@ -35,12 +35,8 @@ public class ReportServiceImpl implements ReportService {
      */
     @Override
     public Report getById(Long id) {
-        Optional<Report> report = reportRepository.findById(id);
-        try {
-            return report.orElseThrow(NotFoundIdException::new);
-        } catch (NotFoundIdException e) {
-            throw new RuntimeException(e);
-        }
+        return reportRepository.findById(id)
+                .orElseThrow(() -> new NotFoundIdException("Report not found with id: " + id));
     }
 
     /**
@@ -84,12 +80,11 @@ public class ReportServiceImpl implements ReportService {
      */
     @Override
     public Report update(Report report) {
-        Optional<Report> report2 = reportRepository.findById(report.getId());
-        try {
-            reportRepository.save(report);
-            return report2.orElseThrow(NotFoundIdException::new);
-        } catch (NotFoundIdException e) {
-            throw new RuntimeException(e);
+        Long reportId = report.getId();
+        if (reportRepository.existsById(reportId)) {
+            return reportRepository.save(report);
+        } else {
+            throw new NotFoundIdException("Report not found with id: " + reportId);
         }
     }
 
@@ -100,7 +95,7 @@ public class ReportServiceImpl implements ReportService {
      */
     @Override
     public void delete(Report report) {
-        reportRepository.save(report);
+        reportRepository.delete(report);
     }
 
     /**
@@ -110,12 +105,10 @@ public class ReportServiceImpl implements ReportService {
      */
     @Override
     public void deleteById(Long id) {
-        try {
-            reportRepository.deleteById(id);
-            throw new NotFoundIdException();
-        } catch (NotFoundIdException e) {
-            throw new RuntimeException(e);
+        if (!reportRepository.existsById(id)) {
+            throw new NotFoundIdException("Report not found with id: " + id);
         }
+        reportRepository.deleteById(id);
     }
 
     /**

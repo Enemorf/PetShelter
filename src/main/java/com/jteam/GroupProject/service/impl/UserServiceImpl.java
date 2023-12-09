@@ -1,9 +1,11 @@
 package com.jteam.GroupProject.service.impl;
 
 
+import com.jteam.GroupProject.exceptions.NotFoundIdException;
 import com.jteam.GroupProject.model.User;
 import com.jteam.GroupProject.repository.UserRepository;
 import com.jteam.GroupProject.service.UserService;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -44,8 +46,9 @@ public class UserServiceImpl implements UserService {
      * @return "CAT" или "DOG"
      */
     @Override
-    public String getShelterById(Long id) {
-        return null;
+    public User getShelterById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new NotFoundIdException("User not found with id: " + id));
     }
 
     /**
@@ -82,6 +85,10 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public void deleteById(Long id) {
-        userRepository.deleteById(id);
+        if (userRepository.existsById(id)) {
+            userRepository.deleteById(id);
+        } else {
+            throw new EntityNotFoundException("User with id " + id + " not found");
+        }
     }
 }

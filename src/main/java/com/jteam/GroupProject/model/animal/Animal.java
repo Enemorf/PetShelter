@@ -5,13 +5,11 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Entity
-@Table(name = "dog")
-public class Dog extends Animal{
+@MappedSuperclass
+public abstract class Animal {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -34,13 +32,15 @@ public class Dog extends Animal{
     @Column(name = "shelter_id")
     private Long shelterId;
 
-    public Dog(String name, Integer age, Boolean isHealthy, Boolean vaccinated, Long shelterId) {
+    public Animal(String name, Integer age, Boolean isHealthy, Boolean vaccinated, Long shelterId) {
         this.name = name;
         this.age = age;
         this.isHealthy = isHealthy;
         this.vaccinated = vaccinated;
         this.shelterId = shelterId;
     }
+
+    // Другие общие методы и поведение
 
     @Override
     public String toString() {
@@ -49,4 +49,6 @@ public class Dog extends Animal{
                 ", Состояние здоровья: " + (isHealthy ? "здоров" : "инвалид") +
                 ", Вакцинация: " + (vaccinated ? "привит" : "не привит");
     }
+
+
 }

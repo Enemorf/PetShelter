@@ -5,6 +5,7 @@ import com.jteam.GroupProject.model.TrialPeriod;
 import com.jteam.GroupProject.model.owners.DogOwner;
 import com.jteam.GroupProject.repository.DogOwnerRepository;
 import com.jteam.GroupProject.service.DogOwnerService;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -51,12 +52,8 @@ public class DogOwnerServiceImpl implements DogOwnerService {
      */
     @Override
     public DogOwner getById(Long id) {
-        Optional<DogOwner> dogOwner = dogOwnerRepository.findById(id);
-        try {
-            return dogOwner.orElseThrow(NotFoundIdException::new);
-        } catch (NotFoundIdException e) {
-            throw new RuntimeException(e);
-        }
+        return dogOwnerRepository.findById(id)
+                .orElseThrow(() -> new NotFoundIdException("Dog owner not found with id: " + id));
     }
 
     /**
@@ -75,12 +72,11 @@ public class DogOwnerServiceImpl implements DogOwnerService {
      */
     @Override
     public DogOwner update(DogOwner dogOwner) {
-        Optional<DogOwner> dogOwner2 = dogOwnerRepository.findById(dogOwner.getId());
         try {
             dogOwnerRepository.save(dogOwner);
-            return dogOwner2.orElseThrow(NotFoundIdException::new);
-        } catch (NotFoundIdException e) {
-            throw new RuntimeException(e);
+            return dogOwner;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to update DogOwner", e);
         }
     }
 
@@ -101,9 +97,8 @@ public class DogOwnerServiceImpl implements DogOwnerService {
     public void deleteById(Long id) {
         try {
             dogOwnerRepository.deleteById(id);
-            throw new NotFoundIdException();
-        } catch (NotFoundIdException e) {
-            throw new RuntimeException(e);
+        } catch (EmptyResultDataAccessException e) {
+            throw new NotFoundIdException("DogOwner not found with id: " + id);
         }
     }
 }

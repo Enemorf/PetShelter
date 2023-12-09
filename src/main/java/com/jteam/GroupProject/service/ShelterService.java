@@ -2,14 +2,14 @@ package com.jteam.GroupProject.service;
 
 import java.util.List;
 
-public interface ShelterService<T, D> {
+public interface ShelterService<Shelter, D> {
     /**
      * Сохранить приют в БД
      * @param shelter объект приют
      * @return сохранение приюта в БД
      */
 
-    T addShelter(T shelter);
+    Shelter addShelter(Shelter shelter);
 
     /**
      * Обновление данных приюта
@@ -17,23 +17,23 @@ public interface ShelterService<T, D> {
      * @return shelter объект приют
      */
 
-    T updateShelter(T shelter);
+    Shelter updateShelter(Shelter shelter);
 
     /**
      * Получение приюта по id
      * @param id приюта
      * @return приют
      */
-    T getSheltersId(long id);
+    Shelter getSheltersId(long id);
 
-    T getShelterByName(String name);
+    Shelter getShelterByName(String name);
 
     /**
      * Выдача списка приютов
      * @return List со списком приютов
      */
 
-    List<T> getShelter();
+    List<Shelter> getShelter();
 
     /**
      * Выдача списка животных приютов
@@ -47,5 +47,5 @@ public interface ShelterService<T, D> {
      * Удаление приюта
      * @param index номер
      */
-    String delShelter(long index);
+    void delShelter(long index);
 }
