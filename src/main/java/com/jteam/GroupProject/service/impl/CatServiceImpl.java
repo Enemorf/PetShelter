@@ -89,12 +89,11 @@ public class CatServiceImpl implements CatService {
      */
     @Override
     public void remove(Long id) {
-        Optional<Cat> cat2 = catRepository.findById(id);
-        try {
+        Optional<Cat> cat = catRepository.findById(id);
+        if (cat.isPresent()) {
             catRepository.deleteById(id);
-            throw new NotFoundIdException();
-        } catch (NotFoundIdException e) {
-            throw new RuntimeException(e);
+        } else {
+            throw new NotFoundIdException("Cat not found with id: " + id);
         }
     }
 }

@@ -1,5 +1,7 @@
 package com.jteam.GroupProject.service.impl;
 
+import com.jteam.GroupProject.exceptions.NotFoundIdException;
+import com.jteam.GroupProject.model.animal.Animal;
 import com.jteam.GroupProject.repository.ShelterRepository;
 import com.jteam.GroupProject.service.ShelterService;
 import org.springframework.stereotype.Service;
@@ -72,8 +74,14 @@ public class ShelterServiceImpl implements ShelterService {
      * @return List со списком приютов
      */
     @Override
-    public List getAnimal(long index) {
-        return shelterRepository.findAllById(index);
+    public List<Animal> getAnimal(long index) {
+        List<Animal> animals = shelterRepository.findAllById(index);
+
+        if (animals.isEmpty()) {
+            throw new NotFoundIdException("No animals found for shelter with index: " + index);
+        }
+
+        return animals;
     }
 
     /**
@@ -82,7 +90,10 @@ public class ShelterServiceImpl implements ShelterService {
      * @param index номер
      */
     @Override
-    public String delShelter(long index) {
-        return shelterRepository.deleteById(index);
+    public void delShelter(long index) {
+        if (!shelterRepository.existsById(index)) {
+            throw new NotFoundIdException("Shelter not found with index: " + index);
+        }
+        shelterRepository.deleteById(index);
     }
 }
