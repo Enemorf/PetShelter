@@ -49,12 +49,8 @@ public class TrialPeriodServiceImpl implements TrialPeriodService {
      */
     @Override
     public TrialPeriod getById(Long id) {
-        Optional<TrialPeriod> trialPeriod = trialPeriodRepository.findById(id);
-        try {
-            return trialPeriod.orElseThrow(NotFoundIdException::new);
-        } catch (NotFoundIdException e) {
-            throw new RuntimeException(e);
-        }
+        return trialPeriodRepository.findById(id)
+                .orElseThrow(() -> new NotFoundIdException("TrialPeriod not found with id: " + id));
     }
 
     /**
@@ -86,12 +82,12 @@ public class TrialPeriodServiceImpl implements TrialPeriodService {
      */
     @Override
     public TrialPeriod update(TrialPeriod trialPeriod) {
-        Optional<TrialPeriod> trialPeriod2 = trialPeriodRepository.findById(trialPeriod.getId());
-        try {
-            trialPeriodRepository.save(trialPeriod);
-            return trialPeriod2.orElseThrow(NotFoundIdException::new);
-        } catch (NotFoundIdException e) {
-            throw new RuntimeException(e);
+        Optional<TrialPeriod> existingTrialPeriod = trialPeriodRepository.findById(trialPeriod.getId());
+
+        if (existingTrialPeriod.isPresent()) {
+            return trialPeriodRepository.save(trialPeriod);
+        } else {
+            throw new NotFoundIdException("TrialPeriod with ID " + trialPeriod.getId() + " not found");
         }
     }
 
@@ -102,7 +98,11 @@ public class TrialPeriodServiceImpl implements TrialPeriodService {
      */
     @Override
     public void delete(TrialPeriod trialPeriod) {
-        trialPeriodRepository.delete(trialPeriod);
+        if (trialPeriod != null && trialPeriod.getId() != null) {
+            trialPeriodRepository.delete(trialPeriod);
+        } else {
+            throw new IllegalArgumentException("TrialPeriod or its ID cannot be null");
+        }
     }
 
     /**
@@ -112,12 +112,12 @@ public class TrialPeriodServiceImpl implements TrialPeriodService {
      */
     @Override
     public void deleteById(Long id) {
-        Optional<TrialPeriod> trialPeriod = trialPeriodRepository.findById(id);
-        try {
+        Optional<TrialPeriod> trialPeriodOptional = trialPeriodRepository.findById(id);
+
+        if (trialPeriodOptional.isPresent()) {
             trialPeriodRepository.deleteById(id);
-            throw new NotFoundIdException();
-        } catch (NotFoundIdException e) {
-            throw new RuntimeException(e);
+        } else {
+            throw new NotFoundIdException("TrialPeriod with ID " + id + " not found");
         }
     }
 }

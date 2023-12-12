@@ -25,7 +25,7 @@ public interface UserService {
      * @param id Id пользователя
      * @return "CAT" или "DOG"
      */
-    String getShelterById(Long id);
+    User getShelterById(Long id);
 
     /**
      * @return Список всех пользователей

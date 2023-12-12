@@ -1,6 +1,10 @@
 package com.jteam.GroupProject.listener;
 
 
+import com.jteam.GroupProject.botButtons.CreateButtonsStageOne;
+import com.jteam.GroupProject.botButtons.CreateButtonsStageThree;
+import com.jteam.GroupProject.botButtons.CreateButtonsStageTwo;
+import com.jteam.GroupProject.botButtons.CreateButtonsStageZero;
 import com.jteam.GroupProject.config.TelegramBotConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -9,19 +13,18 @@ import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
+
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
-import java.util.ArrayList;
-import java.util.List;
 
-import static com.jteam.GroupProject.BotConstants.Constants.*;
+import static com.jteam.GroupProject.BotConstants.CallbackDataConstants.*;
+import static com.jteam.GroupProject.BotConstants.TextConstants.*;
 
 @Slf4j
 @Service
 public class TelegramBot extends TelegramLongPollingBot {
 
+    private boolean isDogShelter;
 
     private final TelegramBotConfig botConfig;
 
@@ -46,7 +49,7 @@ public class TelegramBot extends TelegramLongPollingBot {
 
             if (messageText.equals("/start")) {
                 startCommandReceived(chatId, update.getMessage().getChat().getFirstName());
-                executeMessage(createShelterButtons(chatId));
+                executeMessage(CreateButtonsStageZero.createShelterButtons(chatId));
             }
         } else if (update.hasCallbackQuery()) {
             String callbackData = update.getCallbackQuery().getData();
@@ -54,109 +57,215 @@ public class TelegramBot extends TelegramLongPollingBot {
             int messageId = update.getCallbackQuery().getMessage().getMessageId();
 
             switch (callbackData) {
-                case DOG_SHELTER:
-                    String dogShelterText = "Выбран " + DOG_SHELTER.toLowerCase();
-                    executeMessage(createButtonsForUserRequest(chatId, messageId, dogShelterText));
+                case CALLBACK_DOG_SHELTER:
+                    String dogShelterText = "Выбран " + DOG_SHELTER.toLowerCase() + ". Выбери необходимый пункт меню.";
+                    executeMessage(CreateButtonsStageZero.createButtonsForUserRequest(chatId, messageId, dogShelterText));
+
+                    isDogShelter = true;
                     break;
 
-                case CAT_SHELTER:
-                    String catShelterText = "Выбран " + CAT_SHELTER.toLowerCase();
-                    executeMessage(createButtonsForUserRequest(chatId, messageId, catShelterText));
+                case CALLBACK_CAT_SHELTER:
+                    String catShelterText = "Выбран " + CAT_SHELTER.toLowerCase() + ". Выбери необходимый пункт меню.";
+                    executeMessage(CreateButtonsStageZero.createButtonsForUserRequest(chatId, messageId, catShelterText));
+
+                    isDogShelter = false;
                     break;
+
+                case CALLBACK_INFO_SHELTER:
+                    String infoShelterText = "Выбери пункт меню, который хочешь узнать";
+                    executeMessage(CreateButtonsStageOne.createButtonsForInfoAboutShelter(chatId, messageId, infoShelterText));
+                    break;
+
+                case CALLBACK_TAKE_ANIMAL_FROM_SHELTER:
+                    String takeAnimalText = "Консультация с потенциальным хозяином животного из приюта";
+                    executeMessage(CreateButtonsStageTwo.createButtonsForTakeAnimal(chatId, messageId, takeAnimalText, isDogShelter));
+                    break;
+
+                case CALLBACK_REPORT:
+                    String reportText = "Ведение питомца";
+                    executeMessage(CreateButtonsStageThree.createButtonsForReport(chatId, messageId, reportText));
+                    break;
+
+                case CALLBACK_INFO:
+                    String infoText = "В данном разделе можно узнать информацию о приюте";
+                    EditMessageText infoMessage = EditMessageText.builder()
+                            .text(infoText)
+                            .messageId(messageId)
+                            .chatId(chatId)
+                            .build();
+                    executeMessage(infoMessage);
+                    break;
+
+                case CALLBACK_SCHEDULE:
+                    String scheduleText = "В данном разделе можно узнать расписание работы приюта и адрес, схему проезда";
+                    EditMessageText scheduleMessage = EditMessageText.builder()
+                            .text(scheduleText)
+                            .messageId(messageId)
+                            .chatId(chatId)
+                            .build();
+                    executeMessage(scheduleMessage);
+                    break;
+
+                case CALLBACK_SECURITY_CONTACTS:
+                    String securityContactsText = "В данном разделе можно узнать контактные данные охраны для оформления пропуска на машину";
+                    EditMessageText securityConstantMessage = EditMessageText.builder()
+                            .text(securityContactsText)
+                            .messageId(messageId)
+                            .chatId(chatId)
+                            .build();
+                    executeMessage(securityConstantMessage);
+                    break;
+
+                case CALLBACK_SAFETY_PRECAUTIONS:
+                    String safetyPrecautionsText = "В данном разделе можно узнать общие рекомендации о технике безопасности на территории приюта";
+                    EditMessageText safetyPrecautionsMessage = EditMessageText.builder()
+                            .text(safetyPrecautionsText)
+                            .messageId(messageId)
+                            .chatId(chatId)
+                            .build();
+                    executeMessage(safetyPrecautionsMessage);
+                    break;
+
+                case CALLBACK_CONTACTS:
+                    String contactsText = "В данном разделе можно оставить контактные данные для связи";
+                    EditMessageText contactsMessage = EditMessageText.builder()
+                            .text(contactsText)
+                            .messageId(messageId)
+                            .chatId(chatId)
+                            .build();
+                    executeMessage(contactsMessage);
+                    break;
+
+                case CALLBACK_CALL_VOLUNTEER:
+                    String callVolunteerText = "В данном разделе можно связаться с волонтером";
+                    EditMessageText callVolunteerMessage = EditMessageText.builder()
+                            .text(callVolunteerText)
+                            .messageId(messageId)
+                            .chatId(chatId)
+                            .build();
+                    executeMessage(callVolunteerMessage);
+                    break;
+
+                case CALLBACK_RULES:
+                    String rulerText = "В данном разделе можно узнать правила знакомства с животным до того, как забрать его с приюта";
+                    EditMessageText rulesMessage = EditMessageText.builder()
+                            .text(rulerText)
+                            .messageId(messageId)
+                            .chatId(chatId)
+                            .build();
+                    executeMessage(rulesMessage);
+                    break;
+
+                case CALLBACK_DOCUMENT_LIST:
+                    String documentsText = "В данном разделе можно узнать список документов, необходимых для того, чтобы взять животное из приюта";
+                    EditMessageText documentsMessage = EditMessageText.builder()
+                            .text(documentsText)
+                            .messageId(messageId)
+                            .chatId(chatId)
+                            .build();
+                    executeMessage(documentsMessage);
+                    break;
+
+                case CALLBACK_TRANSPORT_PET:
+                    String transportText = "В данном разделе можно узнать список рекомендаций по транспортировке животного";
+                    EditMessageText transportMessage = EditMessageText.builder()
+                            .text(transportText)
+                            .messageId(messageId)
+                            .chatId(chatId)
+                            .build();
+                    executeMessage(transportMessage);
+                    break;
+
+                case CALLBACK_HOME_IMPROVEMENT_FOR_SMALL_PET:
+                    String homeImprovementForSmallPetText = "В данном разделе можно узнать список рекомендаций по обустройству дома для щенка/котенка";
+                    EditMessageText homeImprovementForSmallPetMessage = EditMessageText.builder()
+                            .text(homeImprovementForSmallPetText)
+                            .messageId(messageId)
+                            .chatId(chatId)
+                            .build();
+                    executeMessage(homeImprovementForSmallPetMessage);
+                    break;
+
+                case CALLBACK_HOME_IMPROVEMENT_FOR_ADULT_PET:
+                    String homeImprovementForAdultPetText = "В данном разделе можно узнать список рекомендаций по обустройству дома для взрослого животного";
+                    EditMessageText homeImprovementForAdultPetMessage = EditMessageText.builder()
+                            .text(homeImprovementForAdultPetText)
+                            .messageId(messageId)
+                            .chatId(chatId)
+                            .build();
+                    executeMessage(homeImprovementForAdultPetMessage);
+                    break;
+
+                case CALLBACK_HOME_IMPROVEMENT_FOR_PET_WITH_LIMITED_OPPORTUNITIES:
+                    String homeImprovementForPetWithLimitedOpportunitiesText = "В данном разделе можно узнать список рекомендаций по обустройству дома для животного с ограниченными возможностями";
+                    EditMessageText homeImprovementForPetWithLimitedOpportunitiesMessage = EditMessageText.builder()
+                            .text(homeImprovementForPetWithLimitedOpportunitiesText)
+                            .messageId(messageId)
+                            .chatId(chatId)
+                            .build();
+                    executeMessage(homeImprovementForPetWithLimitedOpportunitiesMessage);
+                    break;
+
+                case CALLBACK_DOG_HANDLER_ADVICE:
+                    String dogHandlerAdviceText = "В данном разделе можно узнать советы кинолога по первичному общению с собакой";
+                    EditMessageText dogHandlerAdviceMessage = EditMessageText.builder()
+                            .text(dogHandlerAdviceText)
+                            .messageId(messageId)
+                            .chatId(chatId)
+                            .build();
+                    executeMessage(dogHandlerAdviceMessage);
+                    break;
+
+                case CALLBACK_DOG_HANDLER_LIST:
+                    String dogHandlerListText = "В данном разделе можно узнать рекомендации по проверенным кинологам для дальнейшего обращения к ним";
+                    EditMessageText dogHandlerListMessage = EditMessageText.builder()
+                            .text(dogHandlerListText)
+                            .messageId(messageId)
+                            .chatId(chatId)
+                            .build();
+                    executeMessage(dogHandlerListMessage);
+                    break;
+
+                case CALLBACK_REASONS_FOR_REFUSAL:
+                    String reasonsForRefusalText = "В данном разделе можно узнать список причин, почему могут отказать и не дать забрать собаку из приюта";
+                    EditMessageText reasonsForRefusalMessage = EditMessageText.builder()
+                            .text(reasonsForRefusalText)
+                            .messageId(messageId)
+                            .chatId(chatId)
+                            .build();
+                    executeMessage(reasonsForRefusalMessage);
+                    break;
+
+                case CALLBACK_REPORT_FORM:
+                    String reportFormText = "В данном разделе можно узнать форму ежедневного отчета";
+                    EditMessageText reportFormMessage = EditMessageText.builder()
+                            .text(reportFormText)
+                            .messageId(messageId)
+                            .chatId(chatId)
+                            .build();
+                    executeMessage(reportFormMessage);
+                    break;
+
+                case CALLBACK_PASS_REPORT:
+                    String passReportText = "В данном разделе можно отправить ежедневный отчет";
+                    EditMessageText passReportMessage = EditMessageText.builder()
+                            .text(passReportText)
+                            .messageId(messageId)
+                            .chatId(chatId)
+                            .build();
+                    executeMessage(passReportMessage);
+                    break;
+
             }
         }
     }
 
+
     // Метод для обработки команды /start
+
     private void startCommandReceived(Long chatId, String name) {
         String helloText = "Привет, " + name + ". Рад тебя видеть!. Я помогу тебе взаимодействовать с приютами.";
         executeMessage(new SendMessage(String.valueOf(chatId), helloText));
-    }
-
-    // Создание кнопок выбора приюта
-    private SendMessage createShelterButtons(Long chatId) {
-        String text = "Выбери приют";
-        SendMessage message = new SendMessage(String.valueOf(chatId), text);
-
-        InlineKeyboardMarkup keyboardMarkup = new InlineKeyboardMarkup();
-
-        List<List<InlineKeyboardButton>> rowsInLine = new ArrayList<>();
-        List<InlineKeyboardButton> rowInLine = new ArrayList<>();
-
-        InlineKeyboardButton dogButton = new InlineKeyboardButton();
-        dogButton.setText("Приют для собак");
-        dogButton.setCallbackData(DOG_SHELTER);
-
-        InlineKeyboardButton catButton = new InlineKeyboardButton();
-        catButton.setText("Приют для кошек");
-        catButton.setCallbackData(CAT_SHELTER);
-
-
-        rowInLine.add(dogButton);
-        rowInLine.add(catButton);
-
-        rowsInLine.add(rowInLine);
-
-        keyboardMarkup.setKeyboard(rowsInLine);
-        message.setReplyMarkup(keyboardMarkup);
-
-        return message;
-
-    }
-
-    private EditMessageText createButtonsForUserRequest(Long chatId, Integer messageId, String text) {
-
-        EditMessageText message = editMessageText(chatId, messageId, text);
-
-        InlineKeyboardMarkup keyboardMarkup = new InlineKeyboardMarkup();
-
-        List<List<InlineKeyboardButton>> rowsInLine = new ArrayList<>();
-        List<InlineKeyboardButton> infoButtonRow = new ArrayList<>();
-        List<InlineKeyboardButton> takeAnimalButtonRow = new ArrayList<>();
-        List<InlineKeyboardButton> reportButtonRow = new ArrayList<>();
-        List<InlineKeyboardButton> callVolunteerButtonRow = new ArrayList<>();
-
-        InlineKeyboardButton infoButton = new InlineKeyboardButton();
-        infoButton.setText(INFO_SHELTER);
-        infoButton.setCallbackData(INFO_SHELTER);
-
-        InlineKeyboardButton takeAnimalButton = new InlineKeyboardButton();
-        takeAnimalButton.setText(TAKE_ANIMAL_FROM_SHELTER);
-        takeAnimalButton.setCallbackData(TAKE_ANIMAL_FROM_SHELTER);
-
-        InlineKeyboardButton reportButton = new InlineKeyboardButton();
-        reportButton.setText(REPORT);
-        reportButton.setCallbackData(REPORT);
-
-        InlineKeyboardButton volunteerButton = new InlineKeyboardButton();
-        volunteerButton.setText(CALL_VOLUNTEER);
-        volunteerButton.setCallbackData(CALL_VOLUNTEER);
-
-        infoButtonRow.add(infoButton);
-        takeAnimalButtonRow.add(takeAnimalButton);
-        reportButtonRow.add(reportButton);
-        callVolunteerButtonRow.add(volunteerButton);
-
-        rowsInLine.add(infoButtonRow);
-        rowsInLine.add(takeAnimalButtonRow);
-        rowsInLine.add(reportButtonRow);
-        rowsInLine.add(callVolunteerButtonRow);
-
-        keyboardMarkup.setKeyboard(rowsInLine);
-        message.setReplyMarkup(keyboardMarkup);
-
-        return message;
-    }
-
-
-    // Создание сообщения, которое заменит сообщение с соответствующим messageId
-    private EditMessageText editMessageText(Long chatId, int messageId, String text) {
-        EditMessageText message = new EditMessageText();
-        message.setChatId(String.valueOf(chatId));
-        message.setText(text);
-        message.setMessageId(messageId);
-
-        return message;
     }
 
     // Отправка сообщения ботом

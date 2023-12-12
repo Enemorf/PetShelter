@@ -23,12 +23,8 @@ public class DogServiceImpl implements DogService {
      */
     @Override
     public Dog getById(Long id) {
-        Optional<Dog> dog = dogRepository.findById(id);
-        try {
-            return dog.orElseThrow(NotFoundIdException::new);
-        } catch (NotFoundIdException e) {
-            throw new RuntimeException(e);
-        }
+        return dogRepository.findById(id)
+                .orElseThrow(() -> new NotFoundIdException("Dog not found with id: " + id));
     }
 
     /**
@@ -61,12 +57,13 @@ public class DogServiceImpl implements DogService {
      */
     @Override
     public Dog update(Dog dog) {
-        Optional<Dog> dog2 = dogRepository.findById(dog.getId());
+        if (!dogRepository.existsById(dog.getId())) {
+            throw new NotFoundIdException("Dog not found with id: " + dog.getId());
+        }
         try {
-            dogRepository.save(dog);
-            return dog2.orElseThrow(NotFoundIdException::new);
-        } catch (NotFoundIdException e) {
-            throw new RuntimeException(e);
+            return dogRepository.save(dog);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to update Dog", e);
         }
     }
 
@@ -88,11 +85,10 @@ public class DogServiceImpl implements DogService {
     @Override
     public void remove(Long id) {
         Optional<Dog> dog = dogRepository.findById(id);
-        try {
+        if (dog.isPresent()) {
             dogRepository.deleteById(id);
-            throw new NotFoundIdException();
-        } catch (NotFoundIdException e) {
-            throw new RuntimeException(e);
+        } else {
+            throw new NotFoundIdException("Dog not found with id: " + id);
         }
     }
 }

@@ -99,11 +99,10 @@ public class CatOwnerServiceImpl implements CatOwnerService {
      */
     @Override
     public void deleteById(Long id) {
-        try {
+        if (catOwnerRepository.existsById(id)) {
             catOwnerRepository.deleteById(id);
-            throw new NotFoundIdException();
-        } catch (NotFoundIdException e) {
-            throw new RuntimeException(e);
+        } else {
+            throw new NotFoundIdException("Cat owner not found with id: " + id);
         }
     }
 }
