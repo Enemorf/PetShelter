@@ -90,10 +90,10 @@ public class ShelterServiceImpl implements ShelterService {
      * @param index номер
      */
     @Override
-    public void delShelter(long index) {
+    public String delShelter(long index) {
         if (!shelterRepository.existsById(index)) {
             throw new NotFoundIdException("Shelter not found with index: " + index);
         }
-        shelterRepository.deleteById(index);
+        return shelterRepository.deleteById(index);
     }
 }
