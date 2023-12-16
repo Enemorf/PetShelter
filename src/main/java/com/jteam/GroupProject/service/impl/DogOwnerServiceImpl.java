@@ -1,23 +1,32 @@
 package com.jteam.GroupProject.service.impl;
 
+import com.jteam.GroupProject.exceptions.AlreadyExistsException;
+import com.jteam.GroupProject.exceptions.NotFoundException;
 import com.jteam.GroupProject.exceptions.NotFoundIdException;
 import com.jteam.GroupProject.model.TrialPeriod;
 import com.jteam.GroupProject.model.owners.DogOwner;
 import com.jteam.GroupProject.repository.DogOwnerRepository;
 import com.jteam.GroupProject.service.DogOwnerService;
+import com.jteam.GroupProject.service.DogService;
+import com.jteam.GroupProject.service.TrialPeriodService;
+import com.jteam.GroupProject.service.UserService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class DogOwnerServiceImpl implements DogOwnerService {
     private final DogOwnerRepository dogOwnerRepository;
+    private final UserService userService;
+    private final DogService dogService;
+    private final TrialPeriodService trialPeriodService;
 
-    public DogOwnerServiceImpl(DogOwnerRepository dogOwnerRepository) {
-        this.dogOwnerRepository = dogOwnerRepository;
-    }
     /**
      * Создание и сохранение хозяина собаки в бд
      *
@@ -28,7 +37,14 @@ public class DogOwnerServiceImpl implements DogOwnerService {
      */
     @Override
     public DogOwner create(DogOwner dogOwner, TrialPeriod.AnimalType animalType, Long animalId) {
-        return dogOwnerRepository.save(dogOwner, animalType, animalId);
+        if (dogService.getById(animalId).getOwnerId() != null) {
+            throw new AlreadyExistsException("У этой собаки уже есть хозяин!");
+        }
+        trialPeriodService.create(new TrialPeriod(LocalDate.now(), LocalDate.now().plusDays(30),
+                LocalDate.now().minusDays(1), new ArrayList<>(),
+                TrialPeriod.Result.IN_PROGRESS, dogOwner.getTelegramId(), animalType, animalId), animalType);
+        dogService.getById(animalId).setOwnerId(dogOwner.getTelegramId());
+        return dogOwnerRepository.save(dogOwner);
     }
 
     /**
@@ -41,7 +57,15 @@ public class DogOwnerServiceImpl implements DogOwnerService {
      */
     @Override
     public DogOwner create(Long id, TrialPeriod.AnimalType animalType, Long animalId) {
-        return dogOwnerRepository.saveAnother(id, animalType, animalId);
+        if (dogService.getById(animalId).getOwnerId() != null) {
+            throw new AlreadyExistsException("У этой собаки уже есть хозяин!");
+        }
+        DogOwner dogOwner = new DogOwner(userService.getById(id));
+        trialPeriodService.create(new TrialPeriod(LocalDate.now(), LocalDate.now().plusDays(30),
+                LocalDate.now().minusDays(1), new ArrayList<>(),
+                TrialPeriod.Result.IN_PROGRESS, id, animalType, animalId), animalType);
+        dogService.getById(animalId).setOwnerId(id);
+        return dogOwnerRepository.save(dogOwner);
     }
 
     /**
@@ -52,8 +76,11 @@ public class DogOwnerServiceImpl implements DogOwnerService {
      */
     @Override
     public DogOwner getById(Long id) {
-        return dogOwnerRepository.findById(id)
-                .orElseThrow(() -> new NotFoundIdException("Dog owner not found with id: " + id));
+        Optional<DogOwner> optionalDogOwner = dogOwnerRepository.findByTelegramId(id);
+        if (optionalDogOwner.isEmpty()) {
+            throw new NotFoundException("Хозяин собаки не найден!");
+        }
+        return optionalDogOwner.get();
     }
 
     /**
@@ -61,7 +88,11 @@ public class DogOwnerServiceImpl implements DogOwnerService {
      */
     @Override
     public List<DogOwner> getAll() {
-        return dogOwnerRepository.findAll();
+        List<DogOwner> all = dogOwnerRepository.findAll();
+        if (all.isEmpty()) {
+            throw new NotFoundException("Владельцев собак нет!");
+        }
+        return all;
     }
 
     /**
@@ -72,12 +103,9 @@ public class DogOwnerServiceImpl implements DogOwnerService {
      */
     @Override
     public DogOwner update(DogOwner dogOwner) {
-        try {
-            dogOwnerRepository.save(dogOwner);
-            return dogOwner;
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to update DogOwner", e);
-        }
+        DogOwner currentDogOwner = getById(dogOwner.getTelegramId());
+        EntityUtils.copyNonNullFields(dogOwner, currentDogOwner);
+        return dogOwnerRepository.save(currentDogOwner);
     }
 
     /**
@@ -85,7 +113,11 @@ public class DogOwnerServiceImpl implements DogOwnerService {
      */
     @Override
     public void delete(DogOwner dogOwner) {
-        dogOwnerRepository.delete(dogOwner);
+        dogService.getAllByUserId(dogOwner.getTelegramId()).forEach(dog -> {
+            dog.setOwnerId(null);
+            dogService.update(dog);
+        });
+        dogOwnerRepository.delete(getById(dogOwner.getTelegramId()));
     }
 
     /**

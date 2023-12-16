@@ -22,10 +22,11 @@ public interface UserService {
 
     /**
      * Получение выбранного в боте приюта по id пользователя
+     *
      * @param id Id пользователя
      * @return "CAT" или "DOG"
      */
-    User getShelterById(Long id);
+    String getShelterById(Long id);
 
     /**
      * @return Список всех пользователей
