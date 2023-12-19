@@ -29,12 +29,10 @@ import com.pengrad.telegrambot.response.GetFileResponse;
 import com.pengrad.telegrambot.response.SendResponse;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -261,7 +259,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                             }
                             case TextConstants.REPORT_FORM -> {
                                 logger.info("Отправить форму отчёта - ID:{}", chatId);
-                                sendReportExample(chatId);
+                                sendMessage(chatId, Information.INFO_REPORT);
                             }
                             case TextConstants.CALL_VOLUNTEER -> {
                                 logger.info("Позвать волонтёра - ID:{}", chatId);
