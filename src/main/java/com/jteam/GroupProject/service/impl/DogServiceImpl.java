@@ -1,20 +1,21 @@
 package com.jteam.GroupProject.service.impl;
 
+import com.jteam.GroupProject.exceptions.NotFoundException;
 import com.jteam.GroupProject.exceptions.NotFoundIdException;
 import com.jteam.GroupProject.model.animal.Dog;
 import com.jteam.GroupProject.repository.DogRepository;
 import com.jteam.GroupProject.service.DogService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class DogServiceImpl implements DogService {
     private final DogRepository dogRepository;
-    public DogServiceImpl(DogRepository dogRepository) {
-        this.dogRepository = dogRepository;
-    }
+
     /**
      * Возвращает объект собаки по его идентификатору.
      *
@@ -23,8 +24,11 @@ public class DogServiceImpl implements DogService {
      */
     @Override
     public Dog getById(Long id) {
-        return dogRepository.findById(id)
-                .orElseThrow(() -> new NotFoundIdException("Dog not found with id: " + id));
+        Optional<Dog> optionalDog = dogRepository.findById(id);
+        if (optionalDog.isEmpty()) {
+            throw new NotFoundException("Пёс не найден!");
+        }
+        return optionalDog.get();
     }
 
     /**
@@ -35,7 +39,11 @@ public class DogServiceImpl implements DogService {
      */
     @Override
     public List<Dog> getAllByUserId(Long id) {
-        return dogRepository.findAllByOwnerId(id);
+        List<Dog> dogList = dogRepository.findAllByOwnerId(id);
+        if (dogList.isEmpty()) {
+            throw new NotFoundException("У хозяина нет собак!");
+        }
+        return dogList;
     }
 
     /**
@@ -57,14 +65,13 @@ public class DogServiceImpl implements DogService {
      */
     @Override
     public Dog update(Dog dog) {
-        if (!dogRepository.existsById(dog.getId())) {
-            throw new NotFoundIdException("Dog not found with id: " + dog.getId());
+        Optional<Dog> dogId = dogRepository.findById(dog.getId());
+        if (dogId.isEmpty()) {
+            throw new NotFoundException("Пса нет");
         }
-        try {
-            return dogRepository.save(dog);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to update Dog", e);
-        }
+        Dog currentDog = dogId.get();
+        EntityUtils.copyNonNullFields(dog, currentDog);
+        return dogRepository.save(currentDog);
     }
 
     /**

@@ -1,9 +1,13 @@
 package com.jteam.GroupProject.service.impl;
 
+import com.jteam.GroupProject.exceptions.NotFoundException;
 import com.jteam.GroupProject.exceptions.NotFoundIdException;
 import com.jteam.GroupProject.model.TrialPeriod;
 import com.jteam.GroupProject.repository.TrialPeriodRepository;
+import com.jteam.GroupProject.service.CatService;
+import com.jteam.GroupProject.service.DogService;
 import com.jteam.GroupProject.service.TrialPeriodService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -11,13 +15,12 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class TrialPeriodServiceImpl implements TrialPeriodService {
     private final TrialPeriodRepository trialPeriodRepository;
+    private final CatService catService;
+    private final DogService dogService;
 
-    public TrialPeriodServiceImpl(TrialPeriodRepository trialPeriodRepository) {
-        System.out.println();
-        this.trialPeriodRepository = trialPeriodRepository;
-    }
     /**
      * Сохранение испытательного периода в бд
      *
@@ -38,7 +41,12 @@ public class TrialPeriodServiceImpl implements TrialPeriodService {
      */
     @Override
     public TrialPeriod create(TrialPeriod trialPeriod, TrialPeriod.AnimalType animalType) {
-        return trialPeriodRepository.save(trialPeriod, animalType);
+        if (animalType.equals(TrialPeriod.AnimalType.CAT)) {
+            catService.getById(trialPeriod.getAnimalId()).setOwnerId(trialPeriod.getOwnerId());
+        } else if (animalType.equals(TrialPeriod.AnimalType.DOG)) {
+            dogService.getById(trialPeriod.getAnimalId()).setOwnerId(trialPeriod.getOwnerId());
+        }
+        return trialPeriodRepository.save(trialPeriod);
     }
 
     /**
@@ -49,8 +57,11 @@ public class TrialPeriodServiceImpl implements TrialPeriodService {
      */
     @Override
     public TrialPeriod getById(Long id) {
-        return trialPeriodRepository.findById(id)
-                .orElseThrow(() -> new NotFoundIdException("TrialPeriod not found with id: " + id));
+        Optional<TrialPeriod> optionalTrialPeriod = trialPeriodRepository.findById(id);
+        if (optionalTrialPeriod.isEmpty()) {
+            throw new NotFoundException("Испытательный срок не найден!");
+        }
+        return optionalTrialPeriod.get();
     }
 
     /**
@@ -60,7 +71,11 @@ public class TrialPeriodServiceImpl implements TrialPeriodService {
      */
     @Override
     public List<TrialPeriod> getAll() {
-        return trialPeriodRepository.findAll();
+        List<TrialPeriod> all = trialPeriodRepository.findAll();
+        if (all.isEmpty()) {
+            throw new NotFoundException("Испытательные сроки не найдены!");
+        }
+        return all;
     }
 
     /**
@@ -71,7 +86,11 @@ public class TrialPeriodServiceImpl implements TrialPeriodService {
      */
     @Override
     public List<TrialPeriod> getAllByOwnerId(Long ownerId) {
-        return trialPeriodRepository.findAllByOwnerId(ownerId);
+        List<TrialPeriod> allByOwnerId = trialPeriodRepository.findAllByOwnerId(ownerId);
+        if (allByOwnerId.isEmpty()) {
+            throw new NotFoundException("Испытательные сроки не найдены!");
+        }
+        return allByOwnerId;
     }
 
     /**
@@ -82,13 +101,9 @@ public class TrialPeriodServiceImpl implements TrialPeriodService {
      */
     @Override
     public TrialPeriod update(TrialPeriod trialPeriod) {
-        Optional<TrialPeriod> existingTrialPeriod = trialPeriodRepository.findById(trialPeriod.getId());
-
-        if (existingTrialPeriod.isPresent()) {
-            return trialPeriodRepository.save(trialPeriod);
-        } else {
-            throw new NotFoundIdException("TrialPeriod with ID " + trialPeriod.getId() + " not found");
-        }
+        TrialPeriod currentTrialPeriod = getById(trialPeriod.getId());
+        EntityUtils.copyNonNullFields(trialPeriod, currentTrialPeriod);
+        return trialPeriodRepository.save(currentTrialPeriod);
     }
 
     /**

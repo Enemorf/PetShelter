@@ -1,5 +1,6 @@
 package com.jteam.GroupProject.controller;
 
+import com.jteam.GroupProject.listener.TelegramBotUpdatesListener;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
@@ -7,7 +8,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
-import com.jteam.GroupProject.listener.TelegramBot;
 import com.jteam.GroupProject.model.Report;
 import com.jteam.GroupProject.service.ReportService;
 
@@ -26,11 +26,11 @@ import java.util.List;
 public class ReportController {
 
     private final ReportService reportService;
-    private final TelegramBot telegramBot;
+    private final TelegramBotUpdatesListener telegramBotUpdatesListener;
 
-    public ReportController(ReportService reportService, TelegramBot telegramBot) {
+    public ReportController(ReportService reportService, TelegramBotUpdatesListener telegramBotUpdatesListener) {
         this.reportService = reportService;
-        this.telegramBot= telegramBot;
+        this.telegramBotUpdatesListener = telegramBotUpdatesListener;
     }
 
     @PostMapping
@@ -116,5 +116,13 @@ public class ReportController {
     public String deleteById(@RequestParam Long id) {
         reportService.deleteById(id);
         return "Отчёт успешно удалён";
+    }
+
+    @GetMapping("report-photo")
+    @Operation(summary = "Отправить фото из отчёта волонтёру")
+    public String getReportPhoto(@RequestParam @Parameter(description = "Id отчёта") Long reportId,
+                                 @RequestParam @Parameter(description = "Id волонтёра") Long volunteerId) {
+        telegramBotUpdatesListener.sendReportPhotoToVolunteer(reportId, volunteerId);
+        return "Фотография успешно отправлена";
     }
 }

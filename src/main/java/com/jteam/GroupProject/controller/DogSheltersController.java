@@ -90,8 +90,8 @@ public class DogSheltersController {
             summary = "Удаление приюта"
     )
 
-    public String delete(@PathVariable @Parameter(description = "id приюта") long id) {
-        return dogShelterService.delShelter(id);
+    public void delete(@PathVariable @Parameter(description = "id приюта") long id) {
+        dogShelterService.delShelter(id);
     }
 
 }

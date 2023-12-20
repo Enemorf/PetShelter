@@ -1,21 +1,20 @@
 package com.jteam.GroupProject.service.impl;
 
 
-import com.jteam.GroupProject.exceptions.NotFoundIdException;
+import com.jteam.GroupProject.exceptions.NotFoundException;
 import com.jteam.GroupProject.model.User;
 import com.jteam.GroupProject.repository.UserRepository;
 import com.jteam.GroupProject.service.UserService;
-import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
-    public UserServiceImpl(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
 
     /**
      * Создание и сохранение пользователя в бд
@@ -36,7 +35,11 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public User getById(Long id) {
-        return userRepository.findAllById(id);
+        Optional<User> optionalUser = userRepository.findByTelegramId(id);
+        if (optionalUser.isEmpty()) {
+            throw new NotFoundException("Пользователь не найден!");
+        }
+        return optionalUser.get();
     }
 
     /**
@@ -46,9 +49,8 @@ public class UserServiceImpl implements UserService {
      * @return "CAT" или "DOG"
      */
     @Override
-    public User getShelterById(Long id) {
-        return userRepository.findById(id)
-                .orElseThrow(() -> new NotFoundIdException("User not found with id: " + id));
+    public String getShelterById(Long id) {
+        return getById(id).getShelterType();
     }
 
     /**
@@ -67,7 +69,9 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public User update(User user) {
-        return userRepository.save(user);
+        User currentUser = getById(user.getTelegramId());
+        EntityUtils.copyNonNullFields(user, currentUser);
+        return userRepository.save(currentUser);
     }
 
     /**
@@ -75,7 +79,7 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public void delete(User user) {
-        userRepository.delete(user);
+        userRepository.delete(getById(user.getTelegramId()));
     }
 
     /**
@@ -85,10 +89,6 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public void deleteById(Long id) {
-        if (userRepository.existsById(id)) {
-            userRepository.deleteById(id);
-        } else {
-            throw new EntityNotFoundException("User with id " + id + " not found");
-        }
+        userRepository.deleteById(getById(id).getTelegramId());
     }
 }
