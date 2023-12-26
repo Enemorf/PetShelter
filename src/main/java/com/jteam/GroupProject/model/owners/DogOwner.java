@@ -22,7 +22,7 @@ import java.util.List;
 @DiscriminatorValue("dog")
 public class DogOwner extends Owner {
 
-    @OneToMany(mappedBy = "ownerId", fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "ownerId", fetch = FetchType.LAZY)
     private List<Dog> dogList;
 
     public DogOwner(Long telegramId, String firstName, String lastName, String phone, List<Dog> dogList, List<TrialPeriod> trialPeriodList) {

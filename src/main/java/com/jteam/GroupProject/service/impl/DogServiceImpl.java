@@ -1,34 +1,36 @@
 package com.jteam.GroupProject.service.impl;
 
+import com.jteam.GroupProject.exceptions.NotFoundException;
 import com.jteam.GroupProject.exceptions.NotFoundIdException;
 import com.jteam.GroupProject.model.animal.Dog;
 import com.jteam.GroupProject.repository.DogRepository;
 import com.jteam.GroupProject.service.DogService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class DogServiceImpl implements DogService {
     private final DogRepository dogRepository;
-    public DogServiceImpl(DogRepository dogRepository) {
-        this.dogRepository = dogRepository;
+
+    @Override
+    public void updateOwnerId(Long dogId, Long newOwnerId) {
+        Dog dog = getById(dogId);
+        dog.setOwnerId(newOwnerId);
+        dogRepository.save(dog);
     }
+
     /**
      * Возвращает объект собаки по его идентификатору.
      *
      * @param id идентификатор собаки в базе данных
      * @return объект собаки с указанным идентификатором
      */
-    @Override
     public Dog getById(Long id) {
-        Optional<Dog> dog = dogRepository.findById(id);
-        try {
-            return dog.orElseThrow(NotFoundIdException::new);
-        } catch (NotFoundIdException e) {
-            throw new RuntimeException(e);
-        }
+        return dogRepository.findById(id).orElseThrow(() -> new NotFoundException("Пёс не найден!"));
     }
 
     /**
@@ -39,7 +41,11 @@ public class DogServiceImpl implements DogService {
      */
     @Override
     public List<Dog> getAllByUserId(Long id) {
-        return dogRepository.findAllByOwnerId(id);
+        List<Dog> dogList = dogRepository.findAllByOwnerId(id);
+        if (dogList.isEmpty()) {
+            throw new NotFoundException("У хозяина нет собак!");
+        }
+        return dogList;
     }
 
     /**
@@ -61,13 +67,14 @@ public class DogServiceImpl implements DogService {
      */
     @Override
     public Dog update(Dog dog) {
-        Optional<Dog> dog2 = dogRepository.findById(dog.getId());
-        try {
-            dogRepository.save(dog);
-            return dog2.orElseThrow(NotFoundIdException::new);
-        } catch (NotFoundIdException e) {
-            throw new RuntimeException(e);
+        if (dog == null) {
+            // Можно бросить исключение или вернуть какой-то дефолтный результат
+            throw new IllegalArgumentException("Обновляемая собака не может быть null");
         }
+
+        Dog currentDog = getById(dog.getId());
+        EntityUtils.copyNonNullFields(dog, currentDog);
+        return dogRepository.save(currentDog);
     }
 
     /**
@@ -87,12 +94,8 @@ public class DogServiceImpl implements DogService {
      */
     @Override
     public void remove(Long id) {
-        Optional<Dog> dog = dogRepository.findById(id);
-        try {
-            dogRepository.deleteById(id);
-            throw new NotFoundIdException();
-        } catch (NotFoundIdException e) {
-            throw new RuntimeException(e);
-        }
+        Optional<Dog> optionalDog = dogRepository.findById(id);
+        Dog dog = optionalDog.orElseThrow(() -> new NotFoundIdException("Dog not found with id: " + id));
+        dogRepository.deleteById(id);
     }
 }

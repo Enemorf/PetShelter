@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Entity
 @Table(name = "cat")
-public class Cat {
+public class Cat extends Animal{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

@@ -1,21 +1,28 @@
 package com.jteam.GroupProject.service.impl;
 
+import com.jteam.GroupProject.exceptions.NotFoundException;
 import com.jteam.GroupProject.exceptions.NotFoundIdException;
 import com.jteam.GroupProject.model.animal.Cat;
 import com.jteam.GroupProject.repository.CatRepository;
 import com.jteam.GroupProject.service.CatService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class CatServiceImpl implements CatService {
     private final CatRepository catRepository;
 
-    public CatServiceImpl(CatRepository catRepository) {
-        this.catRepository = catRepository;
+    @Override
+    public void updateOwnerId(Long catId, Long newOwnerId) {
+        Cat cat = getById(catId);
+        cat.setOwnerId(newOwnerId);
+        catRepository.save(cat);
     }
+
     /**
      * Возвращает объект кота по его идентификатору.
      *
@@ -24,13 +31,11 @@ public class CatServiceImpl implements CatService {
      */
     @Override
     public Cat getById(Long id) {
-        Optional<Cat> cat = catRepository.findById(id);
-        try {
-            return cat.orElseThrow(NotFoundIdException::new);
-        } catch (NotFoundIdException e) {
-            throw new RuntimeException(e);
+        Optional<Cat> optionalCat = catRepository.findById(id);
+        if (optionalCat.isEmpty()) {
+            throw new NotFoundException("Кот не найден!");
         }
-
+        return optionalCat.get();
     }
 
     /**
@@ -41,7 +46,11 @@ public class CatServiceImpl implements CatService {
      */
     @Override
     public List<Cat> getAllByUserId(Long id) {
-        return catRepository.findAllByOwnerId(id);
+        List<Cat> catList = catRepository.findAllByOwnerId(id);
+        if (catList.isEmpty()) {
+            throw new NotFoundException("У хозяина нет котов");
+        }
+        return catList;
     }
 
     /**
@@ -63,13 +72,13 @@ public class CatServiceImpl implements CatService {
      */
     @Override
     public Cat update(Cat cat) {
-        Optional<Cat> cat2 = catRepository.findById(cat.getId());
-        try {
-            catRepository.save(cat);
-            return cat2.orElseThrow(NotFoundIdException::new);
-        } catch (NotFoundIdException e) {
-            throw new RuntimeException(e);
+        Optional<Cat> catId = catRepository.findById(cat.getId());
+        if (catId.isEmpty()) {
+            throw new NotFoundException("Кота нет");
         }
+        Cat currentCat = catId.get();
+        EntityUtils.copyNonNullFields(cat, currentCat);
+        return catRepository.save(currentCat);
     }
 
     /**
@@ -89,12 +98,11 @@ public class CatServiceImpl implements CatService {
      */
     @Override
     public void remove(Long id) {
-        Optional<Cat> cat2 = catRepository.findById(id);
-        try {
+        Optional<Cat> cat = catRepository.findById(id);
+        if (cat.isPresent()) {
             catRepository.deleteById(id);
-            throw new NotFoundIdException();
-        } catch (NotFoundIdException e) {
-            throw new RuntimeException(e);
+        } else {
+            throw new NotFoundIdException("Cat not found with id: " + id);
         }
     }
 }
