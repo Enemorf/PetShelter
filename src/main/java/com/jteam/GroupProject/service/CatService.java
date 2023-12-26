@@ -6,6 +6,8 @@ import java.util.List;
 
 public interface CatService {
 
+    void updateOwnerId(Long catId, Long newOwnerId);
+
     /**
      * Возвращает объект кота по его идентификатору.
      * @param id идентификатор кота в базе данных

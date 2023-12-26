@@ -5,6 +5,8 @@ import com.jteam.GroupProject.model.animal.Dog;
 import java.util.List;
 
 public interface DogService {
+    void updateOwnerId(Long dogId, Long newOwnerId);
+
     /**
      * Возвращает объект собаки по его идентификатору.
      * @param id идентификатор собаки в базе данных
