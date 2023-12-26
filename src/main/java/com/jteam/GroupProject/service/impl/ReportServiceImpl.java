@@ -105,10 +105,23 @@ public class ReportServiceImpl implements ReportService {
      */
     @Override
     public Report update(Report report) {
-        Report currentReport = getById(report.getId());
+        Long reportId = report.getId();
+
+        // Проверка, что reportId не равен null
+        if (reportId == null) {
+            throw new IllegalArgumentException("Report id cannot be null");
+        }
+
+        // Проверка наличия отчета с заданным id
+        Report currentReport = getById(reportId);
+
+        // Копирование ненулевых полей
         EntityUtils.copyNonNullFields(report, currentReport);
+
+        // Сохранение обновленного отчета
         Report updatedReport = reportRepository.save(currentReport);
         logger.info("Report updated: {}", updatedReport);
+
         return updatedReport;
     }
 

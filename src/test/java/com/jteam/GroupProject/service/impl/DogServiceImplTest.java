@@ -22,9 +22,6 @@ import static org.mockito.Mockito.*;
 class DogServiceImplTest {
     @Mock
     private DogRepository dogRepositoryMock;
-    @Mock
-    private EntityUtils entityUtilsMock;
-
 
     @InjectMocks
     private DogServiceImpl dogService;
@@ -85,9 +82,6 @@ class DogServiceImplTest {
         // Mocking the behavior of getById method
         when(dogRepositoryMock.findById(dogId)).thenReturn(Optional.of(existingDog));
 
-        // Mocking the behavior of copyNonNullFields method
-        doNothing().when(entityUtilsMock).copyNonNullFields(any(Dog.class), any(Dog.class));
-
         // Mocking the behavior of save method
         when(dogRepositoryMock.save(existingDog)).thenReturn(updatedDog);
 
@@ -96,7 +90,6 @@ class DogServiceImplTest {
 
         // Verifying the interactions
         verify(dogRepositoryMock, times(1)).findById(dogId);
-        verify(entityUtilsMock, times(1)).copyNonNullFields(any(Dog.class), any(Dog.class));
         verify(dogRepositoryMock, times(1)).save(existingDog);
 
         // Assertions

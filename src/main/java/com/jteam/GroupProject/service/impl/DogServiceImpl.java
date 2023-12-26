@@ -94,7 +94,8 @@ public class DogServiceImpl implements DogService {
      */
     @Override
     public void remove(Long id) {
-        Dog dog = getById(id);
+        Optional<Dog> optionalDog = dogRepository.findById(id);
+        Dog dog = optionalDog.orElseThrow(() -> new NotFoundIdException("Dog not found with id: " + id));
         dogRepository.deleteById(id);
     }
 }

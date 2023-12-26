@@ -1,5 +1,6 @@
 package com.jteam.GroupProject.BotConstants;
 
+import org.springframework.stereotype.Component;
 
 // Константы, используемые в боте
 public class TextConstants {
