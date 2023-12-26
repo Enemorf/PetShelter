@@ -8,6 +8,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -68,10 +70,10 @@ public class CatController {
         return catService.update(new Cat(id, name, age, isHealthy, vaccinated, shelterId, ownerId));
     }
 
-    @DeleteMapping("/id")
+    @DeleteMapping("/{id}")
     @Operation(summary = "Удаление кота")
-    public String deleteById(@RequestParam Long id) {
+    public ResponseEntity<String> deleteById(@PathVariable Long id) {
         catService.remove(id);
-        return "Кота выбросили на улицу";
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).body("Кота выбросили на улицу");
     }
 }

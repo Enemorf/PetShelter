@@ -14,6 +14,11 @@ public class EntityUtils {
      * @param toObj   объект в который копируем
      */
     public static void copyNonNullFields(Object fromObj, Object toObj) {
+        // Проверка на null перед доступом к полям
+        if (fromObj == null || toObj == null) {
+            return;
+        }
+
         Logger logger = LoggerFactory.getLogger(EntityUtils.class);
         Field[] fields = fromObj.getClass().getDeclaredFields();
         for (Field field : fields) {

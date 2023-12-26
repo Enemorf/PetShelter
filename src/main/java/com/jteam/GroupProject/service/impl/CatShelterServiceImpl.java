@@ -6,6 +6,8 @@ import com.jteam.GroupProject.model.shelters.CatShelter;
 import com.jteam.GroupProject.repository.CatShelterRepository;
 import com.jteam.GroupProject.service.ShelterService;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,6 +17,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class CatShelterServiceImpl implements ShelterService<CatShelter, Cat> {
     private final CatShelterRepository catRepository;
+    private static final Logger logger = LoggerFactory.getLogger(CatShelterServiceImpl.class);
 
     /**
      * Сохранить приют в БД
@@ -24,6 +27,7 @@ public class CatShelterServiceImpl implements ShelterService<CatShelter, Cat> {
      */
     @Override
     public CatShelter addShelter(CatShelter shelter) {
+        logger.info("Adding shelter: {}", shelter);
         return catRepository.save(shelter);
     }
 
@@ -35,6 +39,7 @@ public class CatShelterServiceImpl implements ShelterService<CatShelter, Cat> {
      */
     @Override
     public CatShelter updateShelter(CatShelter catShelter) {
+        logger.info("Updating shelter with id {}: {}", catShelter.getId(), catShelter);
         CatShelter currentShelter = getSheltersId(catShelter.getId());
         EntityUtils.copyNonNullFields(catShelter, currentShelter);
         return catRepository.save(currentShelter);
@@ -48,11 +53,8 @@ public class CatShelterServiceImpl implements ShelterService<CatShelter, Cat> {
      */
     @Override
     public CatShelter getSheltersId(long id) {
-        Optional<CatShelter> shelterId = catRepository.findById(id);
-        if (shelterId.isEmpty()) {
-            throw new NotFoundException("Приют не найден. Кошки остались без дома");
-        }
-        return shelterId.get();
+        return catRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Приют не найден. Кошки остались без дома"));
     }
 
     /**
@@ -61,11 +63,8 @@ public class CatShelterServiceImpl implements ShelterService<CatShelter, Cat> {
      */
     @Override
     public CatShelter getShelterByName(String name) {
-        Optional<CatShelter> shelterId = catRepository.findByName(name);
-        if (shelterId.isEmpty()) {
-            throw new NotFoundException("Приют не найден. Кошки остались без дома");
-        }
-        return shelterId.get();
+        return catRepository.findByName(name)
+                .orElseThrow(() -> new NotFoundException("Приют не найден. Кошки остались без дома"));
     }
 
     /**
@@ -95,15 +94,14 @@ public class CatShelterServiceImpl implements ShelterService<CatShelter, Cat> {
      * @param index номер
      */
     @Override
-    public String delShelter(long index) {
-        String result;
+    public void delShelter(long index) {
         Optional<CatShelter> catShelter = catRepository.findById(index);
         if (catShelter.isPresent()) {
             catRepository.deleteById(index);
-            result = "Запись удалена";
+            logger.info("Shelter with id {} deleted", index);
         } else {
+            logger.warn("Attempt to delete non-existing shelter with id: {}", index);
             throw new NotFoundException("Котятки остались без приюта. Не нашли приют");
         }
-        return result;
     }
 }

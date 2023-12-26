@@ -6,8 +6,11 @@ import com.jteam.GroupProject.model.shelters.DogShelter;
 import com.jteam.GroupProject.repository.DogShelterRepository;
 import com.jteam.GroupProject.service.ShelterService;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,59 +18,77 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class DogShelterServiceImpl implements ShelterService<DogShelter, Dog> {
     private final DogShelterRepository dogShelterRepository;
+    private final Logger logger = LoggerFactory.getLogger(VolunteerServiceImpl.class);
 
 
     @Override
     public DogShelter addShelter(DogShelter shelter) {
-        return dogShelterRepository.save(shelter);
+        DogShelter savedShelter = dogShelterRepository.save(shelter);
+        logger.info("DogShelter added: {}", savedShelter);
+        return savedShelter;
     }
 
     @Override
     public DogShelter updateShelter(DogShelter shelter) {
         DogShelter currentShelter = getSheltersId(shelter.getId());
         EntityUtils.copyNonNullFields(shelter, currentShelter);
-        return dogShelterRepository.save(currentShelter);
+        DogShelter updatedShelter = dogShelterRepository.save(currentShelter);
+        logger.info("DogShelter updated: {}", updatedShelter);
+        return updatedShelter;
     }
+
 
     @Override
     public DogShelter getSheltersId(long id) {
-        Optional<DogShelter> shelterId = dogShelterRepository.findById(id);
-        if (shelterId.isEmpty()) {
-            throw new NotFoundException("Приют не найден. Собачки остались без дома");
-        }
-        return shelterId.get();
+        return dogShelterRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Приют не найден. Собачки остались без дома"));
+
     }
 
     @Override
     public DogShelter getShelterByName(String name) {
-        Optional<DogShelter> shelterId = dogShelterRepository.findByName(name);
-        if (shelterId.isEmpty()) {
-            throw new NotFoundException("Приют не найден. Собачки остались без дома");
-        }
-        return shelterId.get();
+        return dogShelterRepository.findByName(name)
+                .orElseThrow(() -> new NotFoundException("Приют не найден. Собачки остались без дома"));
+
     }
 
     @Override
     public List<DogShelter> getShelter() {
-        return dogShelterRepository.findAll();
+        try {
+            List<DogShelter> shelters = dogShelterRepository.findAll();
+            logger.info("Retrieved list of dog shelters: {}", shelters);
+            return shelters;
+        } catch (Exception e) {
+            logger.error("Error retrieving dog shelters: {}", e.getMessage(), e);
+            throw new RuntimeException("Error retrieving dog shelters", e);
+        }
     }
 
     @Override
     public List<Dog> getAnimal(long index) {
-        return getSheltersId(index).getList();
+        try {
+            DogShelter shelter = getSheltersId(index);
+            List<Dog> animals = shelter.getList();
+            logger.info("Retrieved list of dogs from shelter {}: {}", index, animals);
+            return animals;
+        } catch (NotFoundException e) {
+            logger.warn("Unable to retrieve dogs from shelter {}: {}", index, e.getMessage());
+            return Collections.emptyList();
+        }
     }
 
 
     @Override
-    public String delShelter(long index) {
-        String result;
-        Optional<DogShelter> dogShelter = dogShelterRepository.findById(index);
-        if (dogShelter.isPresent()) {
+    public void delShelter(long index) {
+        Optional<DogShelter> dogShelterOptional = dogShelterRepository.findById(index);
+
+        if (dogShelterOptional.isPresent()) {
+            DogShelter dogShelter = dogShelterOptional.get();
             dogShelterRepository.deleteById(index);
-            result = "Запись удалена";
+            logger.info("DogShelter deleted: {}", dogShelter);
         } else {
-            throw new NotFoundException("Собачки без приюта. Мы его не нашли(");
+            logger.warn("Attempt to delete non-existing DogShelter with id: {}", index);
+            throw new NotFoundException("Собачки без приюта. Мы его не нашли.");
         }
-        return result;
     }
 }

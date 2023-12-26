@@ -1,6 +1,8 @@
 package com.jteam.GroupProject.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import com.jteam.GroupProject.exceptions.NotFoundException;
 import com.jteam.GroupProject.model.Volunteer;
@@ -15,19 +17,21 @@ import java.util.Optional;
 public class VolunteerServiceImpl implements VolunteerService {
 
     private final VolunteerRepo volunteerRepo;
+    private final Logger logger = LoggerFactory.getLogger(VolunteerServiceImpl.class);
 
     @Override
     public Volunteer create(Volunteer volunteer) {
-        return volunteerRepo.save(volunteer);
+
+        Volunteer savedVolunteer = volunteerRepo.save(volunteer);
+        logger.info("Volunteer created: {}", savedVolunteer);
+        return savedVolunteer;
     }
 
     @Override
     public Volunteer getById(Long id) {
-        Optional<Volunteer> optionalVolunteer = volunteerRepo.findById(id);
-        if (optionalVolunteer.isEmpty()) {
-            throw new NotFoundException("По указанному id волонтёр не найден!");
-        }
-        return optionalVolunteer.get();
+        return volunteerRepo.findById(id)
+                .orElseThrow(() -> new NotFoundException("По указанному id волонтёр не найден!"));
+
     }
 
     @Override
@@ -41,18 +45,25 @@ public class VolunteerServiceImpl implements VolunteerService {
 
     @Override
     public Volunteer update(Volunteer volunteer) {
-        Volunteer currentVolunteer =getById(volunteer.getTelegramId());
+        Volunteer currentVolunteer = getById(volunteer.getTelegramId());
         EntityUtils.copyNonNullFields(volunteer, currentVolunteer);
-        return volunteerRepo.save(currentVolunteer);
+        Volunteer updatedVolunteer = volunteerRepo.save(currentVolunteer);
+        logger.info("Volunteer updated: {}", updatedVolunteer);
+        return updatedVolunteer;
     }
 
     @Override
     public void delete(Volunteer volunteer) {
         volunteerRepo.delete(getById(volunteer.getTelegramId()));
+        logger.info("Volunteer deleted: {}", volunteer);
     }
-
     @Override
     public void deleteById(Long id) {
-        volunteerRepo.deleteById(getById(id).getTelegramId());
+        if (volunteerRepo.existsById(id)) {
+            volunteerRepo.deleteById(id);
+            logger.info("Volunteer deleted by ID: {}", id);
+        } else {
+            logger.warn("Volunteer with ID {} not found, delete operation skipped.", id);
+        }
     }
 }

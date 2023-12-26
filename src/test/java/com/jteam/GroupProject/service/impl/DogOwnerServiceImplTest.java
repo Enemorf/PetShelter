@@ -1,10 +1,14 @@
 package com.jteam.GroupProject.service.impl;
 
+import com.jteam.GroupProject.exceptions.AlreadyExistsException;
 import com.jteam.GroupProject.exceptions.NotFoundIdException;
 import com.jteam.GroupProject.model.TrialPeriod;
-import com.jteam.GroupProject.model.owners.CatOwner;
+import com.jteam.GroupProject.model.animal.Dog;
 import com.jteam.GroupProject.model.owners.DogOwner;
 import com.jteam.GroupProject.repository.DogOwnerRepository;
+import com.jteam.GroupProject.service.DogService;
+import com.jteam.GroupProject.service.TrialPeriodService;
+import com.jteam.GroupProject.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -22,6 +26,12 @@ import static org.mockito.Mockito.*;
 class DogOwnerServiceImplTest {
     @Mock
     private DogOwnerRepository dogOwnerRepositoryMock;
+    @Mock
+    private TrialPeriodService trialPeriodServiceMock;
+    @Mock
+    private UserService userServiceMock;
+    @Mock
+    private DogService dogServiceMock;
 
     @InjectMocks
     private DogOwnerServiceImpl dogOwnerService;
@@ -33,14 +43,45 @@ class DogOwnerServiceImplTest {
 
     @Test
     void testCreate() {
+        // Arrange
+        Long telegramId = 123L;
+        Long animalId = 456L;
+
         DogOwner dogOwner = new DogOwner();
-        when(dogOwnerRepositoryMock.save(dogOwner, TrialPeriod.AnimalType.CAT, 1L)).thenReturn(dogOwner);
+        dogOwner.setTelegramId(telegramId);
 
-        DogOwner createdDogOwner = dogOwnerService.create(dogOwner, TrialPeriod.AnimalType.CAT, 1L);
+        when(dogServiceMock.getById(animalId)).thenReturn(new Dog());
+        when(dogOwnerRepositoryMock.save(dogOwner)).thenReturn(dogOwner);
 
+        // Act
+        DogOwner createdDogOwner = dogOwnerService.create(dogOwner, TrialPeriod.AnimalType.DOG, animalId);
+
+        // Assert
         assertNotNull(createdDogOwner);
         assertEquals(dogOwner, createdDogOwner);
-        verify(dogOwnerRepositoryMock, times(1)).save(dogOwner, TrialPeriod.AnimalType.CAT, 1L);
+        verify(trialPeriodServiceMock, times(1)).create(any(), eq(TrialPeriod.AnimalType.DOG));
+        verify(dogServiceMock, times(1)).getById(animalId);
+        verify(dogServiceMock, times(1)).updateOwnerId(animalId, telegramId);
+        verify(dogOwnerRepositoryMock, times(1)).save(dogOwner);
+    }
+
+    @Test
+    void testCreateDogWithExistingOwner() {
+        // Arrange
+        Long telegramId = 123L;
+        Long animalId = 456L;
+
+        DogOwner dogOwner = new DogOwner();
+        dogOwner.setTelegramId(telegramId);
+
+        when(dogServiceMock.getById(animalId)).thenReturn(new Dog());
+
+        // Act and Assert
+        assertThrows(AlreadyExistsException.class, () -> dogOwnerService.create(dogOwner, TrialPeriod.AnimalType.DOG, animalId));
+
+        // Verify
+        verify(dogServiceMock, times(1)).getById(animalId);
+        verifyNoInteractions(trialPeriodServiceMock, dogOwnerRepositoryMock);
     }
 
     @Test

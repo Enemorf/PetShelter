@@ -76,11 +76,9 @@ public class DogOwnerServiceImpl implements DogOwnerService {
      */
     @Override
     public DogOwner getById(Long id) {
-        Optional<DogOwner> optionalDogOwner = dogOwnerRepository.findByTelegramId(id);
-        if (optionalDogOwner.isEmpty()) {
-            throw new NotFoundException("Хозяин собаки не найден!");
-        }
-        return optionalDogOwner.get();
+        return dogOwnerRepository.findByTelegramId(id)
+                .orElseThrow(() -> new NotFoundException("Хозяин собаки не найден!"));
+
     }
 
     /**

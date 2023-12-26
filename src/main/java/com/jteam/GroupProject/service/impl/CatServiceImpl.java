@@ -16,6 +16,13 @@ import java.util.Optional;
 public class CatServiceImpl implements CatService {
     private final CatRepository catRepository;
 
+    @Override
+    public void updateOwnerId(Long catId, Long newOwnerId) {
+        Cat cat = getById(catId);
+        cat.setOwnerId(newOwnerId);
+        catRepository.save(cat);
+    }
+
     /**
      * Возвращает объект кота по его идентификатору.
      *

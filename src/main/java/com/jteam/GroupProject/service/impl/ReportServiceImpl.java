@@ -9,6 +9,8 @@ import com.jteam.GroupProject.repository.ReportRepository;
 import com.jteam.GroupProject.service.ReportService;
 import com.jteam.GroupProject.service.TrialPeriodService;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -23,6 +25,7 @@ import java.util.regex.Pattern;
 public class ReportServiceImpl implements ReportService {
     private final ReportRepository reportRepository;
     private final TrialPeriodService trialPeriodService;
+    private final Logger logger = LoggerFactory.getLogger(VolunteerServiceImpl.class);
 
     /**
      * Сохранение отчёта в бд (Он же отвечает за обновление уже существующего отчёта)
@@ -32,7 +35,10 @@ public class ReportServiceImpl implements ReportService {
      */
     @Override
     public Report create(Report report) {
-        return reportRepository.save(report);
+
+        Report savedReport = reportRepository.save(report);
+        logger.info("Report created: {}", savedReport);
+        return savedReport;
     }
 
     /**
@@ -43,11 +49,9 @@ public class ReportServiceImpl implements ReportService {
      */
     @Override
     public Report getById(Long id) {
-        Optional<Report> optionalReport = reportRepository.findById(id);
-        if (optionalReport.isEmpty()) {
-            throw new NotFoundException("Отчёт не найден!");
-        }
-        return optionalReport.get();
+        return reportRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Отчёт не найден!"));
+
     }
 
     /**
@@ -73,11 +77,9 @@ public class ReportServiceImpl implements ReportService {
      */
     @Override
     public List<Report> getAll() {
-        List<Report> all = reportRepository.findAll();
-        if (all.isEmpty()) {
-            throw new NotFoundException("Отчёты не найдены!");
-        }
-        return all;
+        return Optional.ofNullable(reportRepository.findAll())
+                .orElseThrow(() -> new NotFoundException("Отчёты не найдены!"));
+
     }
 
     /**
@@ -105,7 +107,9 @@ public class ReportServiceImpl implements ReportService {
     public Report update(Report report) {
         Report currentReport = getById(report.getId());
         EntityUtils.copyNonNullFields(report, currentReport);
-        return reportRepository.save(currentReport);
+        Report updatedReport = reportRepository.save(currentReport);
+        logger.info("Report updated: {}", updatedReport);
+        return updatedReport;
     }
 
     /**
@@ -116,8 +120,8 @@ public class ReportServiceImpl implements ReportService {
     @Override
     public void delete(Report report) {
         reportRepository.delete(getById(report.getId()));
+        logger.info("Report deleted: {}", report);
     }
-
     /**
      * Удаление отчёта по id
      *
@@ -125,6 +129,7 @@ public class ReportServiceImpl implements ReportService {
      */
     @Override
     public void deleteById(Long id) {
+
         reportRepository.deleteById(getById(id).getId());
     }
 
@@ -169,7 +174,7 @@ public class ReportServiceImpl implements ReportService {
         if (matcher.find()) {
             return new ArrayList<>(List.of(matcher.group(2), matcher.group(4), matcher.group(6)));
         } else {
-            throw new IllegalArgumentException("Проверьте правильность введённых данных и отправьте отчёт ещё раз.");
+            throw new IllegalArgumentException("Invalid caption format. Check the entered data and submit the report again.");
         }
     }
 }

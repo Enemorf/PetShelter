@@ -16,19 +16,21 @@ import java.util.Optional;
 public class DogServiceImpl implements DogService {
     private final DogRepository dogRepository;
 
+    @Override
+    public void updateOwnerId(Long dogId, Long newOwnerId) {
+        Dog dog = getById(dogId);
+        dog.setOwnerId(newOwnerId);
+        dogRepository.save(dog);
+    }
+
     /**
      * Возвращает объект собаки по его идентификатору.
      *
      * @param id идентификатор собаки в базе данных
      * @return объект собаки с указанным идентификатором
      */
-    @Override
     public Dog getById(Long id) {
-        Optional<Dog> optionalDog = dogRepository.findById(id);
-        if (optionalDog.isEmpty()) {
-            throw new NotFoundException("Пёс не найден!");
-        }
-        return optionalDog.get();
+        return dogRepository.findById(id).orElseThrow(() -> new NotFoundException("Пёс не найден!"));
     }
 
     /**
@@ -65,11 +67,12 @@ public class DogServiceImpl implements DogService {
      */
     @Override
     public Dog update(Dog dog) {
-        Optional<Dog> dogId = dogRepository.findById(dog.getId());
-        if (dogId.isEmpty()) {
-            throw new NotFoundException("Пса нет");
+        if (dog == null) {
+            // Можно бросить исключение или вернуть какой-то дефолтный результат
+            throw new IllegalArgumentException("Обновляемая собака не может быть null");
         }
-        Dog currentDog = dogId.get();
+
+        Dog currentDog = getById(dog.getId());
         EntityUtils.copyNonNullFields(dog, currentDog);
         return dogRepository.save(currentDog);
     }
@@ -91,11 +94,7 @@ public class DogServiceImpl implements DogService {
      */
     @Override
     public void remove(Long id) {
-        Optional<Dog> dog = dogRepository.findById(id);
-        if (dog.isPresent()) {
-            dogRepository.deleteById(id);
-        } else {
-            throw new NotFoundIdException("Dog not found with id: " + id);
-        }
+        Dog dog = getById(id);
+        dogRepository.deleteById(id);
     }
 }

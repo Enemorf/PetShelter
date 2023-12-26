@@ -2,16 +2,22 @@ package com.jteam.GroupProject.service.impl;
 
 import com.jteam.GroupProject.exceptions.NotFoundException;
 import com.jteam.GroupProject.exceptions.NotFoundIdException;
+import com.jteam.GroupProject.listener.TelegramBotUpdatesListener;
 import com.jteam.GroupProject.model.TrialPeriod;
 import com.jteam.GroupProject.repository.TrialPeriodRepository;
 import com.jteam.GroupProject.service.CatService;
 import com.jteam.GroupProject.service.DogService;
 import com.jteam.GroupProject.service.TrialPeriodService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -20,6 +26,7 @@ public class TrialPeriodServiceImpl implements TrialPeriodService {
     private final TrialPeriodRepository trialPeriodRepository;
     private final CatService catService;
     private final DogService dogService;
+    private final Logger logger = LoggerFactory.getLogger(TelegramBotUpdatesListener.class);
 
     /**
      * Сохранение испытательного периода в бд
@@ -40,13 +47,21 @@ public class TrialPeriodServiceImpl implements TrialPeriodService {
      * @return Созданный испытательный срок
      */
     @Override
-    public TrialPeriod create(TrialPeriod trialPeriod, TrialPeriod.AnimalType animalType) {
+    public TrialPeriod create(@Valid TrialPeriod trialPeriod, TrialPeriod.AnimalType animalType) {
         if (animalType.equals(TrialPeriod.AnimalType.CAT)) {
-            catService.getById(trialPeriod.getAnimalId()).setOwnerId(trialPeriod.getOwnerId());
+            catService.updateOwnerId(trialPeriod.getAnimalId(), trialPeriod.getOwnerId());
         } else if (animalType.equals(TrialPeriod.AnimalType.DOG)) {
-            dogService.getById(trialPeriod.getAnimalId()).setOwnerId(trialPeriod.getOwnerId());
+            dogService.updateOwnerId(trialPeriod.getAnimalId(), trialPeriod.getOwnerId());
         }
-        return trialPeriodRepository.save(trialPeriod);
+
+        try {
+            TrialPeriod savedTrialPeriod = trialPeriodRepository.save(trialPeriod);
+            logger.info("TrialPeriod created: {}", savedTrialPeriod);
+            return savedTrialPeriod;
+        } catch (Exception e) {
+            logger.error("Error creating TrialPeriod: {}", e.getMessage(), e);
+            throw new RuntimeException("Error creating TrialPeriod", e);
+        }
     }
 
     /**
@@ -58,10 +73,7 @@ public class TrialPeriodServiceImpl implements TrialPeriodService {
     @Override
     public TrialPeriod getById(Long id) {
         Optional<TrialPeriod> optionalTrialPeriod = trialPeriodRepository.findById(id);
-        if (optionalTrialPeriod.isEmpty()) {
-            throw new NotFoundException("Испытательный срок не найден!");
-        }
-        return optionalTrialPeriod.get();
+        return optionalTrialPeriod.orElseThrow(() -> new NotFoundException("Испытательный срок не найден!"));
     }
 
     /**
@@ -113,10 +125,15 @@ public class TrialPeriodServiceImpl implements TrialPeriodService {
      */
     @Override
     public void delete(TrialPeriod trialPeriod) {
-        if (trialPeriod != null && trialPeriod.getId() != null) {
+        try {
+            Objects.requireNonNull(trialPeriod, "TrialPeriod cannot be null");
+            Objects.requireNonNull(trialPeriod.getId(), "TrialPeriod ID cannot be null");
+
             trialPeriodRepository.delete(trialPeriod);
-        } else {
-            throw new IllegalArgumentException("TrialPeriod or its ID cannot be null");
+            logger.info("TrialPeriod deleted: {}", trialPeriod);
+        } catch (DataAccessException e) {
+            logger.error("Error deleting TrialPeriod", e);
+            throw new IllegalStateException("Error deleting TrialPeriod", e);
         }
     }
 
@@ -127,12 +144,19 @@ public class TrialPeriodServiceImpl implements TrialPeriodService {
      */
     @Override
     public void deleteById(Long id) {
-        Optional<TrialPeriod> trialPeriodOptional = trialPeriodRepository.findById(id);
+        try {
+            Optional<TrialPeriod> trialPeriodOptional = trialPeriodRepository.findById(id);
 
-        if (trialPeriodOptional.isPresent()) {
-            trialPeriodRepository.deleteById(id);
-        } else {
-            throw new NotFoundIdException("TrialPeriod with ID " + id + " not found");
+            if (trialPeriodOptional.isPresent()) {
+                trialPeriodRepository.deleteById(id);
+                logger.info("TrialPeriod with ID {} deleted", id);
+            } else {
+                throw new NotFoundIdException("TrialPeriod with ID " + id + " not found");
+            }
+        } catch (Exception e) {
+            logger.error("Error deleting TrialPeriod by ID {}: {}", id, e.getMessage(), e);
+            throw new RuntimeException("Error deleting TrialPeriod by ID " + id, e);
         }
     }
+
 }

@@ -61,7 +61,7 @@ class ReportServiceImplTest {
         LocalDate date = LocalDate.now();
         Report expectedReport = new Report();
 
-        when(reportRepositoryMock.findByDateAndTrialPeriodId(date, reportId)).thenReturn(expectedReport);
+        when(reportRepositoryMock.findByReceiveDateAndTrialPeriodId(date, reportId)).thenReturn(Optional.of(expectedReport));
 
         Report retrievedReport = reportService.getByDateAndTrialId(date, reportId);
 

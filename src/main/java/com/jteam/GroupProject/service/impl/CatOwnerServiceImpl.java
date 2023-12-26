@@ -75,11 +75,8 @@ public class CatOwnerServiceImpl implements CatOwnerService {
      */
     @Override
     public CatOwner getById(Long id) {
-        Optional<CatOwner> optionalCatOwner = catOwnerRepository.findByTelegramId(id);
-        if (optionalCatOwner.isEmpty()) {
-            throw new NotFoundException("Хозяин кота не найден!");
-        }
-        return optionalCatOwner.get();
+        return catOwnerRepository.findByTelegramId(id)
+                .orElseThrow(() -> new NotFoundException("Хозяин кота не найден!"));
     }
 
     /**

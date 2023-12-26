@@ -6,6 +6,8 @@ import com.jteam.GroupProject.model.User;
 import com.jteam.GroupProject.repository.UserRepository;
 import com.jteam.GroupProject.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,6 +17,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
+    private final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 
     /**
      * Создание и сохранение пользователя в бд
@@ -24,7 +27,10 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public User create(User user) {
-        return userRepository.save(user);
+
+        User savedUser = userRepository.save(user);
+        logger.info("User created: {}", savedUser);
+        return savedUser;
     }
 
     /**
@@ -35,11 +41,9 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public User getById(Long id) {
-        Optional<User> optionalUser = userRepository.findByTelegramId(id);
-        if (optionalUser.isEmpty()) {
-            throw new NotFoundException("Пользователь не найден!");
-        }
-        return optionalUser.get();
+        return userRepository.findByTelegramId(id)
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден!"));
+
     }
 
     /**
@@ -71,7 +75,9 @@ public class UserServiceImpl implements UserService {
     public User update(User user) {
         User currentUser = getById(user.getTelegramId());
         EntityUtils.copyNonNullFields(user, currentUser);
-        return userRepository.save(currentUser);
+        User updatedUser = userRepository.save(currentUser);
+        logger.info("User updated: {}", updatedUser);
+        return updatedUser;
     }
 
     /**
@@ -79,7 +85,9 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public void delete(User user) {
+
         userRepository.delete(getById(user.getTelegramId()));
+        logger.info("User deleted: {}", user);
     }
 
     /**
@@ -89,6 +97,11 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public void deleteById(Long id) {
-        userRepository.deleteById(getById(id).getTelegramId());
+        if (userRepository.existsById(id)) {
+            userRepository.deleteById(id);
+            logger.info("User deleted by ID: {}", id);
+        } else {
+            logger.warn("User with ID {} not found, delete operation skipped.", id);
+        }
     }
 }

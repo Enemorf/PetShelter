@@ -47,15 +47,16 @@ class UserServiceImplTest {
 
     @Test
     void testGetById() {
+        Long userId = 1L;
         User expectedUser = new User();
-        when(userRepositoryMock.findAllById(userId)).thenReturn(expectedUser);
+
+        when(userRepositoryMock.findByTelegramId(userId)).thenReturn(Optional.of(expectedUser));
 
         User retrievedUser = userService.getById(userId);
 
         assertNotNull(retrievedUser);
         assertEquals(expectedUser, retrievedUser);
-        verify(userRepositoryMock, times(1)).findAllById(userId);
-
+        verify(userRepositoryMock, times(1)).findByTelegramId(userId);
     }
 
     @Test
@@ -64,7 +65,7 @@ class UserServiceImplTest {
         when(userRepositoryMock.findById(userId)).thenReturn(Optional.of(user));
 
         // Act
-        User retrievedUser = userService.getShelterById(userId);
+        String retrievedUser = userService.getShelterById(userId);
 
         // Assert
         assertNotNull(retrievedUser);
