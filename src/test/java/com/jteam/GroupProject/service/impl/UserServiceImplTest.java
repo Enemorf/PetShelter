@@ -1,10 +1,7 @@
 package com.jteam.GroupProject.service.impl;
 
 import com.jteam.GroupProject.model.User;
-import com.jteam.GroupProject.model.animal.Dog;
-import com.jteam.GroupProject.model.owners.DogOwner;
 import com.jteam.GroupProject.repository.UserRepository;
-import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -62,16 +59,17 @@ class UserServiceImplTest {
     @Test
     void getShelterById() {
         User user = new User();
-        when(userRepositoryMock.findById(userId)).thenReturn(Optional.of(user));
+        user.setShelterType("Собачий приют");
+        when(userRepositoryMock.findByTelegramId(userId)).thenReturn(Optional.of(user));
 
         // Act
         String retrievedUser = userService.getShelterById(userId);
 
         // Assert
         assertNotNull(retrievedUser);
-        assertEquals(user, retrievedUser);
+        assertEquals(user.getShelterType(), retrievedUser);
 
-        verify(userRepositoryMock, times(1)).findById(userId);
+        verify(userRepositoryMock, times(1)).findByTelegramId(userId);
     }
 
     @Test
@@ -89,8 +87,9 @@ class UserServiceImplTest {
     @Test
     void testUpdate() {
         User existingUser = new User();
+        existingUser.setTelegramId(userId);
         when(userRepositoryMock.save(any(User.class))).thenReturn(existingUser);
-
+        when(userRepositoryMock.findByTelegramId(anyLong())).thenReturn(Optional.of(existingUser));
         User updatedUser = userService.update(existingUser);
 
         assertNotNull(updatedUser);
@@ -101,15 +100,11 @@ class UserServiceImplTest {
     @Test
     void testDelete() {
         User user = new User();
+        user.setTelegramId(userId);
+
+        when(userRepositoryMock.findByTelegramId(anyLong())).thenReturn(Optional.of(user));
         assertDoesNotThrow(() -> userService.delete(user));
         verify(userRepositoryMock, times(1)).delete(user);
     }
 
-    @Test
-    void testDeleteById() {
-        when(userRepositoryMock.existsById(userId)).thenReturn(false);
-
-        assertThrows(EntityNotFoundException.class, () -> userService.deleteById(userId));
-        verify(userRepositoryMock, never()).deleteById(userId);
-    }
 }

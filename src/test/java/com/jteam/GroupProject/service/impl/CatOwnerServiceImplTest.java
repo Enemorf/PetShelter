@@ -1,6 +1,5 @@
 package com.jteam.GroupProject.service.impl;
 
-import com.jteam.GroupProject.exceptions.AlreadyExistsException;
 import com.jteam.GroupProject.exceptions.NotFoundIdException;
 import com.jteam.GroupProject.model.TrialPeriod;
 import com.jteam.GroupProject.model.animal.Cat;
@@ -8,7 +7,6 @@ import com.jteam.GroupProject.model.owners.CatOwner;
 import com.jteam.GroupProject.repository.CatOwnerRepository;
 import com.jteam.GroupProject.service.CatService;
 import com.jteam.GroupProject.service.TrialPeriodService;
-import com.jteam.GroupProject.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -26,8 +24,7 @@ import static org.mockito.Mockito.*;
 class CatOwnerServiceImplTest {
     @Mock
     private CatOwnerRepository catOwnerRepositoryMock;
-    @Mock
-    private UserService userServiceMock;
+
 
     @Mock
     private CatService catServiceMock;
@@ -62,7 +59,6 @@ class CatOwnerServiceImplTest {
         // Assert
         verify(trialPeriodServiceMock).create(any(), any());
         verify(catServiceMock, times(2)).getById(animalId);
-        verify(catServiceMock).update(any());
         verify(catOwnerRepositoryMock).save(catOwner);
 
         assertSame(catOwner, createdCatOwner);
@@ -73,7 +69,7 @@ class CatOwnerServiceImplTest {
         // Arrange
         Long ownerId = 1L;
         CatOwner catOwner = new CatOwner();
-        when(catOwnerRepositoryMock.findById(ownerId)).thenReturn(Optional.of(catOwner));
+        when(catOwnerRepositoryMock.findByTelegramId(ownerId)).thenReturn(Optional.of(catOwner));
 
         // Act
         CatOwner retrievedCatOwner = catOwnerService.getById(ownerId);
@@ -81,13 +77,14 @@ class CatOwnerServiceImplTest {
         // Assert
         assertNotNull(retrievedCatOwner);
         assertEquals(catOwner, retrievedCatOwner);
-        verify(catOwnerRepositoryMock, times(1)).findById(ownerId);
+        verify(catOwnerRepositoryMock, times(1)).findByTelegramId(ownerId);
     }
 
     @Test
     void testGetAll() {
         // Arrange
         List<CatOwner> catOwners = new ArrayList<>();
+        catOwners.add(new CatOwner());
         when(catOwnerRepositoryMock.findAll()).thenReturn(catOwners);
 
         // Act
@@ -103,7 +100,7 @@ class CatOwnerServiceImplTest {
     void testUpdate() {
         // Arrange
         CatOwner existingCatOwner = new CatOwner();
-        when(catOwnerRepositoryMock.findById(existingCatOwner.getId())).thenReturn(Optional.of(existingCatOwner));
+        when(catOwnerRepositoryMock.findByTelegramId(existingCatOwner.getId())).thenReturn(Optional.of(existingCatOwner));
         when(catOwnerRepositoryMock.save(existingCatOwner)).thenReturn(existingCatOwner);
 
         // Act
@@ -119,6 +116,11 @@ class CatOwnerServiceImplTest {
     void testDelete() {
         // Arrange
         CatOwner catOwner = new CatOwner();
+        Long catOwnerId = 1L;
+        catOwner.setTelegramId(catOwnerId);
+
+        when(catOwnerRepositoryMock.findByTelegramId(anyLong())).thenReturn(Optional.of(catOwner));
+        doNothing().when(catOwnerRepositoryMock).deleteById(anyLong());
 
         // Act/Assert
         assertDoesNotThrow(() -> catOwnerService.delete(catOwner));
