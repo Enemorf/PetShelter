@@ -1,5 +1,6 @@
 package com.jteam.GroupProject.service.impl;
 
+import com.jteam.GroupProject.exceptions.NotFoundException;
 import com.jteam.GroupProject.model.animal.Cat;
 import com.jteam.GroupProject.repository.CatRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,14 +46,14 @@ class CatServiceImplTest {
     @Test
     void testGetAllByUserId() {
         Long ownerId = 1L;
-        List<Cat> cats = new ArrayList<>();
 
-        when(catRepositoryMock.findAllByOwnerId(ownerId)).thenReturn(cats);
+        // Mocking the catRepository to return a list of cats when findAllByOwnerId is called
+        when(catRepositoryMock.findAllByOwnerId(ownerId)).thenReturn(new ArrayList<>());
 
-        List<Cat> retrievedCats = catService.getAllByUserId(ownerId);
+        // Проверка на выброс NotFoundException
+        assertThrows(NotFoundException.class, () -> catService.getAllByUserId(ownerId), "У хозяина нет котов");
 
-        assertNotNull(retrievedCats);
-        assertEquals(cats, retrievedCats);
+        // Verifying that findAllByOwnerId was called exactly once
         verify(catRepositoryMock, times(1)).findAllByOwnerId(ownerId);
     }
 

@@ -1,16 +1,16 @@
 package com.jteam.GroupProject.config;
 
 
-import lombok.Data;
+import com.pengrad.telegrambot.TelegramBot;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@Data
 public class TelegramBotConfig {
 
-
-    @Value("${telegram.bot.name}")
-    private String botName;
-
+    @Bean
+    public TelegramBot telegramBot(@Value("${telegram.bot.token}") String token) {
+        return new TelegramBot(token);
+    }
 }

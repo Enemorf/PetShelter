@@ -1,5 +1,6 @@
 package com.jteam.GroupProject.service.impl;
 
+import com.jteam.GroupProject.exceptions.NotFoundException;
 import com.jteam.GroupProject.exceptions.NotFoundIdException;
 import com.jteam.GroupProject.model.Report;
 import com.jteam.GroupProject.model.animal.Dog;
@@ -61,7 +62,7 @@ class ReportServiceImplTest {
         LocalDate date = LocalDate.now();
         Report expectedReport = new Report();
 
-        when(reportRepositoryMock.findByDateAndTrialPeriodId(date, reportId)).thenReturn(expectedReport);
+        when(reportRepositoryMock.findByReceiveDateAndTrialPeriodId(date, reportId)).thenReturn(Optional.of(expectedReport));
 
         Report retrievedReport = reportService.getByDateAndTrialId(date, reportId);
 
@@ -85,7 +86,10 @@ class ReportServiceImplTest {
         Report existingReport = new Report();
         existingReport.setId(1L);
 
-        when(reportRepositoryMock.existsById(existingReport.getId())).thenReturn(true);
+        // Настройка мока для возврата существующего отчета при вызове findById с id = 1L
+        when(reportRepositoryMock.findById(existingReport.getId())).thenReturn(Optional.of(existingReport));
+
+        // Настройка мока для возврата existingReport при вызове save
         when(reportRepositoryMock.save(existingReport)).thenReturn(existingReport);
 
         Report updatedReport = reportService.update(existingReport);
@@ -94,44 +98,63 @@ class ReportServiceImplTest {
         assertEquals(existingReport, updatedReport);
     }
     @Test
-    void testGetAllReportsByTrialPeriodId() {
-        List<Report> reports = new ArrayList<>();
-        when(reportRepositoryMock.findAllByTrialPeriodId(reportId)).thenReturn(reports);
+    @DisplayName("Test getting all reports by trial period ID with empty list")
+    void testGetAllReportsByTrialPeriodIdEmptyList() {
+        Long trialPeriodId = 1L;
 
-        List<Report> retrievedReports = reportService.gelAllByTrialPeriodId(reportId);
+        // Предположим, что репозиторий возвращает пустой список
+        when(reportRepositoryMock.findAllByTrialPeriodId(trialPeriodId)).thenReturn(new ArrayList<>());
+
+        // Проверяем, что выбрасывается NotFoundException
+        assertThrows(NotFoundException.class, () -> reportService.gelAllByTrialPeriodId(trialPeriodId));
+    }
+
+    @Test
+    @DisplayName("Test getting all reports by trial period ID with non-empty list")
+    void testGetAllReportsByTrialPeriodIdNonEmptyList() {
+        Long trialPeriodId = 1L;
+
+        // Предположим, что репозиторий возвращает непустой список
+        List<Report> reports = List.of(new Report(), new Report());
+        when(reportRepositoryMock.findAllByTrialPeriodId(trialPeriodId)).thenReturn(reports);
+
+        // Проверяем, что метод возвращает ожидаемый непустой список
+        List<Report> retrievedReports = reportService.gelAllByTrialPeriodId(trialPeriodId);
 
         assertNotNull(retrievedReports);
         assertEquals(reports, retrievedReports);
-        verify(reportRepositoryMock, times(1)).findAllByTrialPeriodId(reportId);
     }
+
     @Test
-    void testDeleteReport() {
-        Report report = new Report();
+    @DisplayName("Test deleting report by ID")
+    void testDeleteById() {
 
-        assertDoesNotThrow(() -> reportService.delete(report));
+        // Предположим, что отчет существует
+        Report existingReport = new Report();
+        existingReport.setId(reportId);
+        when(reportRepositoryMock.findById(reportId)).thenReturn(Optional.of(existingReport));
 
-        verify(reportRepositoryMock, times(1)).delete(report);
-    }
-    @Test
-    @DisplayName("Test successful removal of report by id")
-    void testRemoveReportById() {
+        // Вызываем метод удаления
+        reportService.deleteById(reportId);
 
-        when(reportRepositoryMock.existsById(reportId)).thenReturn(true);
-
-        assertDoesNotThrow(() -> reportService.deleteById(reportId));
+        // Проверяем, что метод deleteById был вызван с ожидаемым ID
         verify(reportRepositoryMock, times(1)).deleteById(reportId);
     }
 
     @Test
-    @DisplayName("Test removal of non-existing report by id")
-    void testRemoveNonExistingReportById() {
+    @DisplayName("Test deleting non-existing report by ID")
+    void testDeleteNonExistingById() {
+        Long nonExistingReportId = 2L;
 
-        when(reportRepositoryMock.existsById(reportId)).thenReturn(false);
+        // Предположим, что отчет не существует
+        when(reportRepositoryMock.findById(nonExistingReportId)).thenReturn(Optional.empty());
 
-        NotFoundIdException exception = assertThrows(NotFoundIdException.class, () -> reportService.deleteById(reportId));
-        assertEquals("Report not found with id: " + reportId, exception.getMessage());
+        // Проверяем, что вызывается NotFoundException при попытке удаления
+        NotFoundException exception = assertThrows(NotFoundException.class, () -> reportService.deleteById(nonExistingReportId));
+        assertEquals("Отчёт не найден!", exception.getMessage());
 
-        verify(reportRepositoryMock, times(0)).deleteById(reportId);
+        // Проверяем, что метод deleteById не вызывается
+        verify(reportRepositoryMock, times(0)).deleteById(nonExistingReportId);
     }
 }
 

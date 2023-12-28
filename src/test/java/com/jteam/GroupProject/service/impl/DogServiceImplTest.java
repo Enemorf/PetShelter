@@ -1,5 +1,6 @@
 package com.jteam.GroupProject.service.impl;
 
+import com.jteam.GroupProject.exceptions.NotFoundException;
 import com.jteam.GroupProject.exceptions.NotFoundIdException;
 import com.jteam.GroupProject.model.animal.Dog;
 import com.jteam.GroupProject.repository.DogRepository;
@@ -10,11 +11,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
+import static org.mockito.ArgumentMatchers.any;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -26,6 +26,7 @@ class DogServiceImplTest {
     @InjectMocks
     private DogServiceImpl dogService;
     private Long dogId;
+
     @BeforeEach
     void setUp() {
         dogId = 1L;
@@ -46,15 +47,13 @@ class DogServiceImplTest {
     @Test
     void testGetAllByUserId() {
         Long ownerId = 1L;
-        List<Dog> dogs = new ArrayList<>();
 
-        when(dogRepositoryMock.findAllByOwnerId(ownerId)).thenReturn(dogs);
+        when(dogRepositoryMock.findAllByOwnerId(ownerId)).thenReturn(new ArrayList<>());
 
-        List<Dog> retrievedDogs = dogService.getAllByUserId(ownerId);
+        assertThrows(NotFoundException.class, () -> dogService.getAllByUserId(ownerId));
 
-        assertNotNull(retrievedDogs);
-        assertEquals(dogs, retrievedDogs);
-        verify(dogRepositoryMock, times(1)).findAllByOwnerId(dogId);
+
+        verify(dogRepositoryMock, times(1)).findAllByOwnerId(ownerId);
     }
 
     @Test
@@ -74,15 +73,29 @@ class DogServiceImplTest {
     @Test
     void testUpdate() {
         Dog existingDog = new Dog();
+        existingDog.setId(dogId);
 
-        when(dogRepositoryMock.existsById(existingDog.getId())).thenReturn(true);
-        when(dogRepositoryMock.save(existingDog)).thenReturn(existingDog);
+        Dog updatedDog = new Dog();
+        updatedDog.setId(dogId);
+        updatedDog.setName("Updated Dog");
 
-        Dog updatedDog = dogService.update(existingDog);
+        // Mocking the behavior of getById method
+        when(dogRepositoryMock.findById(dogId)).thenReturn(Optional.of(existingDog));
 
-        assertNotNull(updatedDog);
-        assertEquals(existingDog, updatedDog);
+        // Mocking the behavior of save method
+        when(dogRepositoryMock.save(existingDog)).thenReturn(updatedDog);
+
+        // Calling the update method
+        Dog result = dogService.update(updatedDog);
+
+        // Verifying the interactions
+        verify(dogRepositoryMock, times(1)).findById(dogId);
         verify(dogRepositoryMock, times(1)).save(existingDog);
+
+        // Assertions
+        assertNotNull(result);
+        assertEquals(updatedDog, result);
+
     }
 
     @Test
@@ -110,6 +123,7 @@ class DogServiceImplTest {
 
         verify(dogRepositoryMock, times(1)).deleteById(dogId);
     }
+
     @Test
     @DisplayName("Test removal of non-existing dog")
     void testRemoveNonExistingDog() {

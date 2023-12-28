@@ -1,22 +1,31 @@
 package com.jteam.GroupProject.service.impl;
 
+import com.jteam.GroupProject.exceptions.AlreadyExistsException;
+import com.jteam.GroupProject.exceptions.NotFoundException;
 import com.jteam.GroupProject.exceptions.NotFoundIdException;
 import com.jteam.GroupProject.model.TrialPeriod;
 import com.jteam.GroupProject.model.owners.CatOwner;
 import com.jteam.GroupProject.repository.CatOwnerRepository;
 import com.jteam.GroupProject.service.CatOwnerService;
+import com.jteam.GroupProject.service.CatService;
+import com.jteam.GroupProject.service.TrialPeriodService;
+import com.jteam.GroupProject.service.UserService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class CatOwnerServiceImpl implements CatOwnerService {
     private final CatOwnerRepository catOwnerRepository;
+    private final UserService userService;
+    private final CatService catService;
+    private final TrialPeriodService trialPeriodService;
 
-    public CatOwnerServiceImpl(CatOwnerRepository catOwnerRepository) {
-        this.catOwnerRepository = catOwnerRepository;
-    }
     /**
      * Создание и сохранение хозяина кота в бд
      *
@@ -27,7 +36,14 @@ public class CatOwnerServiceImpl implements CatOwnerService {
      */
     @Override
     public CatOwner create(CatOwner catOwner, TrialPeriod.AnimalType animalType, Long animalId) {
-        return catOwnerRepository.save(catOwner, animalType, animalId);
+        if(catService.getById(animalId).getOwnerId() != null){
+            throw new AlreadyExistsException("У этого кота уже есть хозяин!");
+        }
+        trialPeriodService.create(new TrialPeriod(LocalDate.now(), LocalDate.now().plusDays(30),
+                LocalDate.now().minusDays(1), new ArrayList<>(),
+                TrialPeriod.Result.IN_PROGRESS, catOwner.getTelegramId(), animalType, animalId), animalType);
+        catService.getById(animalId).setOwnerId(catOwner.getTelegramId());
+        return catOwnerRepository.save(catOwner);
     }
 
     /**
@@ -40,7 +56,15 @@ public class CatOwnerServiceImpl implements CatOwnerService {
      */
     @Override
     public CatOwner create(Long id, TrialPeriod.AnimalType animalType, Long animalId) {
-        return catOwnerRepository.saveAnother(id, animalType, animalId);
+        if (catService.getById(animalId).getOwnerId() != null) {
+            throw new AlreadyExistsException("У этого кота уже есть хозяин!");
+        }
+        CatOwner catOwner = new CatOwner(userService.getById(id));
+        trialPeriodService.create(new TrialPeriod(LocalDate.now(), LocalDate.now().plusDays(30),
+                LocalDate.now().minusDays(1), new ArrayList<>(),
+                TrialPeriod.Result.IN_PROGRESS, id, animalType, animalId), animalType);
+        catService.getById(animalId).setOwnerId(id);
+        return catOwnerRepository.save(catOwner);
     }
 
     /**
@@ -51,12 +75,8 @@ public class CatOwnerServiceImpl implements CatOwnerService {
      */
     @Override
     public CatOwner getById(Long id) {
-        Optional<CatOwner> catOwner = catOwnerRepository.findById(id);
-        try {
-            return catOwner.orElseThrow(NotFoundIdException::new);
-        } catch (NotFoundIdException e) {
-            throw new RuntimeException(e);
-        }
+        return catOwnerRepository.findByTelegramId(id)
+                .orElseThrow(() -> new NotFoundException("Хозяин кота не найден!"));
     }
 
     /**
@@ -64,7 +84,11 @@ public class CatOwnerServiceImpl implements CatOwnerService {
      */
     @Override
     public List<CatOwner> getAll() {
-        return catOwnerRepository.findAll();
+        List<CatOwner> all = catOwnerRepository.findAll();
+        if (all.isEmpty()) {
+            throw new NotFoundException("Владельцев котов нет!");
+        }
+        return all;
     }
 
     /**
@@ -75,13 +99,9 @@ public class CatOwnerServiceImpl implements CatOwnerService {
      */
     @Override
     public CatOwner update(CatOwner catOwner) {
-        Optional<CatOwner> catOwner2 = catOwnerRepository.findById(catOwner.getId());
-        try {
-            catOwnerRepository.save(catOwner);
-            return catOwner2.orElseThrow(NotFoundIdException::new);
-        } catch (NotFoundIdException e) {
-            throw new RuntimeException(e);
-        }
+        CatOwner currentCatOwner = getById(catOwner.getTelegramId());
+        EntityUtils.copyNonNullFields(catOwner, currentCatOwner);
+        return catOwnerRepository.save(currentCatOwner);
     }
 
     /**
@@ -89,7 +109,11 @@ public class CatOwnerServiceImpl implements CatOwnerService {
      */
     @Override
     public void delete(CatOwner catOwner) {
-        catOwnerRepository.delete(catOwner);
+        catService.getAllByUserId(catOwner.getTelegramId()).forEach(cat -> {
+            cat.setOwnerId(null);
+            catService.update(cat);
+        });
+        catOwnerRepository.delete(getById(catOwner.getTelegramId()));
     }
 
     /**

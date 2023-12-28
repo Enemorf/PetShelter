@@ -4,10 +4,14 @@ import com.jteam.GroupProject.exceptions.NotFoundIdException;
 import com.jteam.GroupProject.model.TrialPeriod;
 import com.jteam.GroupProject.model.User;
 import com.jteam.GroupProject.repository.TrialPeriodRepository;
+import com.jteam.GroupProject.service.CatService;
+import com.jteam.GroupProject.service.DogService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
@@ -21,14 +25,25 @@ import static org.mockito.Mockito.*;
 class TrialPeriodServiceImplTest {
     @Mock
     private TrialPeriodRepository trialPeriodRepositoryMock;
+    @Mock
+    private CatService catServiceMock;
+
+    @Mock
+    private DogService dogServiceMock;
+
     @InjectMocks
     private TrialPeriodServiceImpl trialPeriodService;
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+    }
 
     @Test
     void testCreateTrialPeriod() {
 
         TrialPeriod inputTrialPeriod = new TrialPeriod();
-        when(trialPeriodRepositoryMock.save(any(TrialPeriod.class))).thenReturn(inputTrialPeriod);
+        when(trialPeriodRepositoryMock.save(any(TrialPeriod.class)))
+                .thenReturn(inputTrialPeriod);
 
         TrialPeriod createdTrialPeriod = trialPeriodService.create(inputTrialPeriod);
 
@@ -39,19 +54,25 @@ class TrialPeriodServiceImplTest {
     }
     @Test
     void testCreateTrialPeriod2() {
-        TrialPeriod inputTrialPeriod = new TrialPeriod();
-        TrialPeriod.AnimalType animalType = TrialPeriod.AnimalType.DOG;
+        // Arrange
+        TrialPeriod trialPeriod = new TrialPeriod();
+        trialPeriod.setAnimalType(TrialPeriod.AnimalType.CAT); // or TrialPeriod.AnimalType.DOG
+        when(trialPeriodRepositoryMock.save(any(TrialPeriod.class))).thenReturn(trialPeriod);
 
-        when(trialPeriodRepositoryMock.save(any(TrialPeriod.class), any(TrialPeriod.AnimalType.class)))
-                .thenReturn(inputTrialPeriod);
+        // Act
+        TrialPeriod createdTrialPeriod = trialPeriodService.create(trialPeriod, trialPeriod.getAnimalType());
 
-        TrialPeriod createdTrialPeriod = trialPeriodService.create(inputTrialPeriod, animalType);
-
+        // Assert
         assertNotNull(createdTrialPeriod);
-        assertEquals(inputTrialPeriod, createdTrialPeriod);
+        assertEquals(trialPeriod, createdTrialPeriod);
 
+        if (trialPeriod.getAnimalType().equals(TrialPeriod.AnimalType.CAT)) {
+            verify(catServiceMock, times(1)).updateOwnerId(anyLong(), anyLong());
+        } else if (trialPeriod.getAnimalType().equals(TrialPeriod.AnimalType.DOG)) {
+            verify(dogServiceMock, times(1)).updateOwnerId(anyLong(), anyLong());
+        }
 
-        verify(trialPeriodRepositoryMock, times(1)).save(eq(inputTrialPeriod), eq(animalType));
+        verify(trialPeriodRepositoryMock, times(1)).save(trialPeriod);
     }
     @Test
     void testGetById() {

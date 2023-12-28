@@ -1,13 +1,16 @@
 package com.jteam.GroupProject.controller;
 
+import com.jteam.GroupProject.listener.MessageSender;
+import com.jteam.GroupProject.listener.TelegramBotUpdatesListener;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import com.jteam.GroupProject.listener.TelegramBot;
 import com.jteam.GroupProject.model.Report;
 import com.jteam.GroupProject.service.ReportService;
 
@@ -26,11 +29,11 @@ import java.util.List;
 public class ReportController {
 
     private final ReportService reportService;
-    private final TelegramBot telegramBot;
+    private final MessageSender messageSender;
 
-    public ReportController(ReportService reportService, TelegramBot telegramBot) {
+    public ReportController(ReportService reportService, MessageSender messageSender) {
         this.reportService = reportService;
-        this.telegramBot= telegramBot;
+        this.messageSender = messageSender;
     }
 
     @PostMapping
@@ -79,9 +82,11 @@ public class ReportController {
             )
     }
     )
-    public Report getByDateAndTrialId(@RequestParam @Parameter(description = "Дата получения отчёта") LocalDate date,
-                                      @RequestParam @Parameter(description = "id испытательного срока") Long id) {
-        return reportService.getByDateAndTrialId(date, id);
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<Report> getByDateAndTrialId(@RequestParam @Parameter(description = "Дата получения отчёта") LocalDate date,
+                                                      @RequestParam @Parameter(description = "id испытательного срока") Long id) {
+        Report report = reportService.getByDateAndTrialId(date, id);
+        return ResponseEntity.ok(report);
     }
 
     @GetMapping("id")
@@ -116,5 +121,13 @@ public class ReportController {
     public String deleteById(@RequestParam Long id) {
         reportService.deleteById(id);
         return "Отчёт успешно удалён";
+    }
+
+    @GetMapping("report-photo")
+    @Operation(summary = "Отправить фото из отчёта волонтёру")
+    public String getReportPhoto(@RequestParam @Parameter(description = "Id отчёта") Long reportId,
+                                 @RequestParam @Parameter(description = "Id волонтёра") Long volunteerId) {
+      messageSender.sendReportPhotoToVolunteer(reportId, volunteerId);
+        return "Фотография успешно отправлена";
     }
 }

@@ -86,8 +86,8 @@ public class CatSheltersController {
             summary = "Удаление приюта"
     )
 
-    public String delete(@PathVariable @Parameter(description = "id приюта") long id) {
-        return catShelterService.delShelter(id);
+    public void delete(@PathVariable @Parameter(description = "id приюта") long id) {
+        catShelterService.delShelter(id);
     }
 
 }

@@ -1,21 +1,23 @@
 package com.jteam.GroupProject.service.impl;
 
 
-import com.jteam.GroupProject.exceptions.NotFoundIdException;
+import com.jteam.GroupProject.exceptions.NotFoundException;
 import com.jteam.GroupProject.model.User;
 import com.jteam.GroupProject.repository.UserRepository;
 import com.jteam.GroupProject.service.UserService;
-import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
-    public UserServiceImpl(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
+    private final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 
     /**
      * Создание и сохранение пользователя в бд
@@ -25,7 +27,10 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public User create(User user) {
-        return userRepository.save(user);
+
+        User savedUser = userRepository.save(user);
+        logger.info("User created: {}", savedUser);
+        return savedUser;
     }
 
     /**
@@ -36,7 +41,9 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public User getById(Long id) {
-        return userRepository.findAllById(id);
+        return userRepository.findByTelegramId(id)
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден!"));
+
     }
 
     /**
@@ -46,9 +53,8 @@ public class UserServiceImpl implements UserService {
      * @return "CAT" или "DOG"
      */
     @Override
-    public User getShelterById(Long id) {
-        return userRepository.findById(id)
-                .orElseThrow(() -> new NotFoundIdException("User not found with id: " + id));
+    public String getShelterById(Long id) {
+        return getById(id).getShelterType();
     }
 
     /**
@@ -67,7 +73,11 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public User update(User user) {
-        return userRepository.save(user);
+        User currentUser = getById(user.getTelegramId());
+        EntityUtils.copyNonNullFields(user, currentUser);
+        User updatedUser = userRepository.save(currentUser);
+        logger.info("User updated: {}", updatedUser);
+        return updatedUser;
     }
 
     /**
@@ -75,7 +85,9 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public void delete(User user) {
-        userRepository.delete(user);
+
+        userRepository.delete(getById(user.getTelegramId()));
+        logger.info("User deleted: {}", user);
     }
 
     /**
@@ -87,8 +99,9 @@ public class UserServiceImpl implements UserService {
     public void deleteById(Long id) {
         if (userRepository.existsById(id)) {
             userRepository.deleteById(id);
+            logger.info("User deleted by ID: {}", id);
         } else {
-            throw new EntityNotFoundException("User with id " + id + " not found");
+            logger.warn("User with ID {} not found, delete operation skipped.", id);
         }
     }
 }
