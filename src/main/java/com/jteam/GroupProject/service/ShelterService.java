@@ -47,5 +47,5 @@ public interface ShelterService<Shelter, D> {
      * Удаление приюта
      * @param index номер
      */
-    void delShelter(long index);
+    String delShelter(long index);
 }
