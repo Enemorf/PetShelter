@@ -6,6 +6,7 @@ import com.jteam.GroupProject.model.User;
 import com.jteam.GroupProject.service.TrialPeriodService;
 import com.jteam.GroupProject.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -18,6 +19,7 @@ public class SchedulerService {
     private final UserService userService;
     private final TrialPeriodService trialPeriodService;
     private final MessageSender messageSender;
+    private final Information information;
 
 
     private void sendMessage(Long chatId, String message) {
@@ -47,11 +49,11 @@ public class SchedulerService {
         for (User user : userService.getAll()) {
             for (TrialPeriod trialPeriod : trialPeriodService.getAllByOwnerId(user.getTelegramId())) {
                 if (trialPeriod.getResult().equals(TrialPeriod.Result.NOT_SUCCESSFUL)) {
-                    sendMessage(user.getTelegramId(), Information.TRIAL_NOT_SUCCESSFUL);
+                    sendMessage(user.getTelegramId(), information.getTRIAL_NOT_SUCCESSFUL());
                 } else if (trialPeriod.getResult().equals(TrialPeriod.Result.EXTENDED)) {
-                    sendMessage(user.getTelegramId(), Information.TRIAL_EXTENDED);
+                    sendMessage(user.getTelegramId(), information.getTRIAL_EXTENDED());
                 } else if (trialPeriod.getResult().equals(TrialPeriod.Result.SUCCESSFUL)) {
-                    sendMessage(user.getTelegramId(), Information.SUCCESSFUL);
+                    sendMessage(user.getTelegramId(), information.getSUCCESSFUL());
                 }
             }
         }

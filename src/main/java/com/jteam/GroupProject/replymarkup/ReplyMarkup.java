@@ -21,25 +21,27 @@ public class ReplyMarkup {
     private final TelegramBot telegramBot;
     private final CatShelterServiceImpl catShelterService;
     private final DogShelterServiceImpl dogShelterService;
+    private final TextConstants textConstants;
+    private final Information information;
 
 
     public void sendStartMenu(long chatId) {
         ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup(
-                new KeyboardButton(TextConstants.CAT_SHELTER),
-                new KeyboardButton(TextConstants.DOG_SHELTER));
-        replyKeyboardMarkup.addRow(new KeyboardButton(TextConstants.CALL_VOLUNTEER),
-                new KeyboardButton(TextConstants.REPORT_FORM));
-        returnResponseReplyKeyboardMarkup(replyKeyboardMarkup, chatId, Information.WELCOME);
+                new KeyboardButton(textConstants.getCAT_SHELTER()),
+                new KeyboardButton(textConstants.getDOG_SHELTER()));
+        replyKeyboardMarkup.addRow(new KeyboardButton(textConstants.getCALL_VOLUNTEER()),
+                new KeyboardButton(textConstants.getREPORT_FORM()));
+        returnResponseReplyKeyboardMarkup(replyKeyboardMarkup, chatId, information.getWELCOME());
     }
 
 
     public void sendMenuStage(long chatId) {
         ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup(
-                new KeyboardButton(TextConstants.INFO_SHELTER),
-                new KeyboardButton(TextConstants.FAQ),
-                new KeyboardButton(TextConstants.REPORT_FORM));
-        replyKeyboardMarkup.addRow(new KeyboardButton(TextConstants.CALL_VOLUNTEER));
-        replyKeyboardMarkup.addRow(new KeyboardButton(TextConstants.MAIN_MENU));
+                new KeyboardButton(textConstants.getINFO_SHELTER()),
+                new KeyboardButton(textConstants.getFAQ()),
+                new KeyboardButton(textConstants.getREPORT_FORM()));
+        replyKeyboardMarkup.addRow(new KeyboardButton(textConstants.getCALL_VOLUNTEER()));
+        replyKeyboardMarkup.addRow(new KeyboardButton(textConstants.getMAIN_MENU()));
 
         returnResponseReplyKeyboardMarkup(replyKeyboardMarkup, chatId, "Выберите:");
     }
@@ -49,7 +51,7 @@ public class ReplyMarkup {
         List<KeyboardButton> buttons = new ArrayList<>();
         shelters.forEach(shelter -> buttons.add(new KeyboardButton(shelter.getName())));
         ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup(buttons.toArray(new KeyboardButton[0]));
-        replyKeyboardMarkup.addRow(new KeyboardButton(TextConstants.MAIN_MENU));
+        replyKeyboardMarkup.addRow(new KeyboardButton(textConstants.getMAIN_MENU()));
         returnResponseReplyKeyboardMarkup(replyKeyboardMarkup, chatId, "Список кошачьих приютов");
     }
 
@@ -58,105 +60,105 @@ public class ReplyMarkup {
         List<KeyboardButton> buttons = new ArrayList<>();
         shelters.forEach(shelter -> buttons.add(new KeyboardButton(shelter.getName())));
         ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup(buttons.toArray(new KeyboardButton[0]));
-        replyKeyboardMarkup.addRow(new KeyboardButton(TextConstants.MAIN_MENU));
+        replyKeyboardMarkup.addRow(new KeyboardButton(textConstants.getMAIN_MENU()));
         returnResponseReplyKeyboardMarkup(replyKeyboardMarkup, chatId, "Список собачьих приютов");
     }
 
     public void sendMenuCat(long chatId) {
         ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup(
-                new KeyboardButton(TextConstants.SCHEDULE),
-                new KeyboardButton(TextConstants.LIST_OF_CATS),
-                new KeyboardButton(TextConstants.INFO));
+                new KeyboardButton(textConstants.getSCHEDULE()),
+                new KeyboardButton(textConstants.getLIST_OF_CATS()),
+                new KeyboardButton(textConstants.getINFO()));
         replyKeyboardMarkup.addRow(
-                new KeyboardButton(TextConstants.TB_GUIDELINES),
-                new KeyboardButton(TextConstants.CONTACT_DETAILS),
-                new KeyboardButton(TextConstants.SECURITY_CONTACTS));
-        replyKeyboardMarkup.addRow(new KeyboardButton(TextConstants.CALL_VOLUNTEER));
-        replyKeyboardMarkup.addRow(new KeyboardButton(TextConstants.MAIN_MENU));
+                new KeyboardButton(textConstants.getTB_GUIDELINES()),
+                new KeyboardButton(textConstants.getCONTACT_DETAILS()),
+                new KeyboardButton(textConstants.getSECURITY_CONTACTS()));
+        replyKeyboardMarkup.addRow(new KeyboardButton(textConstants.getCALL_VOLUNTEER()));
+        replyKeyboardMarkup.addRow(new KeyboardButton(textConstants.getMAIN_MENU()));
 
         returnResponseReplyKeyboardMarkup(replyKeyboardMarkup, chatId, "Информация о кошачьем приюте");
     }
 
     public void sendMenuDog(long chatId) {
         ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup(
-                new KeyboardButton(TextConstants.SCHEDULE),
-                new KeyboardButton(TextConstants.LIST_OF_DOGS),
-                new KeyboardButton(TextConstants.INFO));
+                new KeyboardButton(textConstants.getSCHEDULE()),
+                new KeyboardButton(textConstants.getLIST_OF_DOGS()),
+                new KeyboardButton(textConstants.getINFO()));
         replyKeyboardMarkup.addRow(
-                new KeyboardButton(TextConstants.TB_GUIDELINES),
-                new KeyboardButton(TextConstants.CONTACT_DETAILS),
-                new KeyboardButton(TextConstants.SECURITY_CONTACTS));
-        replyKeyboardMarkup.addRow(new KeyboardButton(TextConstants.CALL_VOLUNTEER));
-        replyKeyboardMarkup.addRow(new KeyboardButton(TextConstants.MAIN_MENU));
+                new KeyboardButton(textConstants.getTB_GUIDELINES()),
+                new KeyboardButton(textConstants.getCONTACT_DETAILS()),
+                new KeyboardButton(textConstants.getSECURITY_CONTACTS()));
+        replyKeyboardMarkup.addRow(new KeyboardButton(textConstants.getCALL_VOLUNTEER()));
+        replyKeyboardMarkup.addRow(new KeyboardButton(textConstants.getMAIN_MENU()));
 
         returnResponseReplyKeyboardMarkup(replyKeyboardMarkup, chatId, "Информация о собачьем приюте");
     }
 
     public void menuCat(long chatId) {
         ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup(
-                new KeyboardButton(TextConstants.DOCUMENT_LIST),
-                new KeyboardButton(TextConstants.REASONS_FOR_REFUSAL)
+                new KeyboardButton(textConstants.getDOCUMENT_LIST()),
+                new KeyboardButton(textConstants.getREASONS_FOR_REFUSAL())
         );
         replyKeyboardMarkup.addRow(
-                new KeyboardButton(TextConstants.RECOMMENDATIONS_FOR_CATS),
-                new KeyboardButton(TextConstants.CALL_VOLUNTEER),
-                new KeyboardButton(TextConstants.CONTACT_DETAILS)
+                new KeyboardButton(textConstants.getRECOMMENDATIONS_FOR_CATS()),
+                new KeyboardButton(textConstants.getCALL_VOLUNTEER()),
+                new KeyboardButton(textConstants.getCONTACT_DETAILS())
         );
         replyKeyboardMarkup.addRow(
-                new KeyboardButton(TextConstants.MAIN_MENU)
+                new KeyboardButton(textConstants.getMAIN_MENU())
         );
         returnResponseReplyKeyboardMarkup(replyKeyboardMarkup, chatId, "Все о кошках");
     }
 
     public void menuDog(long chatId) {
         ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup(
-                new KeyboardButton(TextConstants.DOCUMENT_LIST),
-                new KeyboardButton(TextConstants.REASONS_FOR_REFUSAL)
+                new KeyboardButton(textConstants.getDOCUMENT_LIST()),
+                new KeyboardButton(textConstants.getREASONS_FOR_REFUSAL())
         );
         replyKeyboardMarkup.addRow(
-                new KeyboardButton(TextConstants.RECOMMENDATIONS_FOR_DOGS),
-                new KeyboardButton(TextConstants.CALL_VOLUNTEER),
-                new KeyboardButton(TextConstants.CONTACT_DETAILS)
+                new KeyboardButton(textConstants.getRECOMMENDATIONS_FOR_DOGS()),
+                new KeyboardButton(textConstants.getCALL_VOLUNTEER()),
+                new KeyboardButton(textConstants.getCONTACT_DETAILS())
         );
         replyKeyboardMarkup.addRow(
-                new KeyboardButton(TextConstants.MAIN_MENU)
+                new KeyboardButton(textConstants.getMAIN_MENU())
         );
         returnResponseReplyKeyboardMarkup(replyKeyboardMarkup, chatId, "Все о собаках");
     }
 
     public void rulesForDogs(long chatId) {
         ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup(
-                new KeyboardButton(TextConstants.RULES_A_DOGS),
-                new KeyboardButton(TextConstants.DOG_CARRIAGE),
-                new KeyboardButton(TextConstants.HOME_IMPROVEMENT_FOR_PUPPY)
+                new KeyboardButton(textConstants.getRULES_A_DOGS()),
+                new KeyboardButton(textConstants.getDOG_CARRIAGE()),
+                new KeyboardButton(textConstants.getHOME_IMPROVEMENT_FOR_PUPPY())
         );
         replyKeyboardMarkup.addRow(
-                new KeyboardButton(TextConstants.HOME_IMPROVEMENT_FOR_ADULT_PET),
-                new KeyboardButton(TextConstants.HOME_IMPROVEMENT_FOR_PET_WITH_LIMITED_OPPORTUNITIES)
+                new KeyboardButton(textConstants.getHOME_IMPROVEMENT_FOR_ADULT_PET()),
+                new KeyboardButton(textConstants.getHOME_IMPROVEMENT_FOR_PET_WITH_LIMITED_OPPORTUNITIES())
         );
         replyKeyboardMarkup.addRow(
-                new KeyboardButton(TextConstants.DOG_HANDLER_ADVICE),
-                new KeyboardButton(TextConstants.DOG_HANDLER_LIST));
+                new KeyboardButton(textConstants.getDOG_HANDLER_ADVICE()),
+                new KeyboardButton(textConstants.getDOG_HANDLER_LIST()));
         replyKeyboardMarkup.addRow(
-                new KeyboardButton(TextConstants.BACK_TO_ALL_ABOUT_DOGS)
+                new KeyboardButton(textConstants.getBACK_TO_ALL_ABOUT_DOGS())
         );
-        returnResponseReplyKeyboardMarkup(replyKeyboardMarkup, chatId, TextConstants.RECOMMENDATIONS_FOR_DOGS);
+        returnResponseReplyKeyboardMarkup(replyKeyboardMarkup, chatId, textConstants.getRECOMMENDATIONS_FOR_DOGS());
     }
 
     public void rulesForCats(long chatId) {
         ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup(
-                new KeyboardButton(TextConstants.RULES_A_CATS),
-                new KeyboardButton(TextConstants.CAT_CARRIAGE)
+                new KeyboardButton(textConstants.getRULES_A_CATS()),
+                new KeyboardButton(textConstants.getCAT_CARRIAGE())
         );
         replyKeyboardMarkup.addRow(
-                new KeyboardButton(TextConstants.HOME_IMPROVEMENT_FOR_ADULT_PET),
-                new KeyboardButton(TextConstants.HOME_IMPROVEMENT_FOR_KITTY),
-                new KeyboardButton(TextConstants.HOME_IMPROVEMENT_FOR_PET_WITH_LIMITED_OPPORTUNITIES)
+                new KeyboardButton(textConstants.getHOME_IMPROVEMENT_FOR_ADULT_PET()),
+                new KeyboardButton(textConstants.getHOME_IMPROVEMENT_FOR_KITTY()),
+                new KeyboardButton(textConstants.getHOME_IMPROVEMENT_FOR_PET_WITH_LIMITED_OPPORTUNITIES())
         );
         replyKeyboardMarkup.addRow(
-                new KeyboardButton(TextConstants.BACK_TO_ALL_ABOUT_CATS)
+                new KeyboardButton(textConstants.getBACK_TO_ALL_ABOUT_CATS())
         );
-        returnResponseReplyKeyboardMarkup(replyKeyboardMarkup, chatId, TextConstants.RECOMMENDATIONS_FOR_CATS);
+        returnResponseReplyKeyboardMarkup(replyKeyboardMarkup, chatId, textConstants.getRECOMMENDATIONS_FOR_CATS());
     }
 
     public void returnResponseReplyKeyboardMarkup(ReplyKeyboardMarkup replyKeyboardMarkup, Long chatId, String text) {

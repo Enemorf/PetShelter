@@ -1,54 +1,57 @@
 package com.jteam.GroupProject.BotConstants;
 
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
+@Getter
 public class Information {
+
     @Value("${information.howToAdoptAnAnimal}")
-    public static String HOW_TO_ADOPT_AN_ANIMAL;
+    private String HOW_TO_ADOPT_AN_ANIMAL;
 
     @Value("${information.welcome}")
-    public static String WELCOME;
+    private String WELCOME;
 
     @Value("${information.animalDatingRules}")
-    public static String ANIMAL_DATING_RULES;
+    private String ANIMAL_DATING_RULES;
 
     @Value("${information.listOfDocuments}")
-    public static String LIST_OF_DOCUMENTS;
+    private String LIST_OF_DOCUMENTS;
 
     @Value("${information.recommendationsHomeImprovementKittenPuppy}")
-    public static String RECOMMENDATIONS_HOME_IMPROVEMENT_KITTEN_PUPPY;
+    private String RECOMMENDATIONS_HOME_IMPROVEMENT_KITTEN_PUPPY;
 
     @Value("${information.recommendationsHomeImprovementAdultAnimal}")
-    public static String RECOMMENDATIONS_HOME_IMPROVEMENT_ADULT_ANIMAL;
+    private String RECOMMENDATIONS_HOME_IMPROVEMENT_ADULT_ANIMAL;
 
     @Value("${information.recommendationsHomeImprovementDisabledAnimal}")
-    public static String RECOMMENDATIONS_HOME_IMPROVEMENT_DISABLED_ANIMAL;
+    private String RECOMMENDATIONS_HOME_IMPROVEMENT_DISABLED_ANIMAL;
 
     @Value("${information.dogHandlersAdvice}")
-    public static String DOG_HANDLERS_ADVICE;
+    private String DOG_HANDLERS_ADVICE;
 
     @Value("${information.dogHandlersContacts}")
-    public static String DOG_HANDLERS_CONTACTS;
+    private String DOG_HANDLERS_CONTACTS;
 
     @Value("${information.listOfReasonForDeny}")
-    public static String LIST_OF_REASON_FOR_DENY;
+    private String LIST_OF_REASON_FOR_DENY;
 
     @Value("${information.trialNotSuccessful}")
-    public static String TRIAL_NOT_SUCCESSFUL;
-
+    private String TRIAL_NOT_SUCCESSFUL;
 
     @Value("${information.trialExtended}")
-    public static String TRIAL_EXTENDED;
+    private String TRIAL_EXTENDED;
 
     @Value("${information.successful}")
-    public static String SUCCESSFUL;
+    private String SUCCESSFUL;
 
     @Value("${information.transportationOfTheAnimal}")
-    public static String TRANSPORTATION_OF_THE_ANIMAL;
+    private String TRANSPORTATION_OF_THE_ANIMAL;
 
     @Value("${information.infoReport}")
-    public static String INFO_REPORT;
+    private String INFO_REPORT;
+
 }
 

@@ -1,5 +1,7 @@
 package com.jteam.GroupProject.listener;
 
+import com.jteam.GroupProject.BotConstants.Information;
+import com.jteam.GroupProject.BotConstants.TextConstants;
 import com.jteam.GroupProject.model.TrialPeriod;
 import com.jteam.GroupProject.model.User;
 import com.jteam.GroupProject.model.Volunteer;
@@ -42,6 +44,8 @@ public class MessageSender {
     private final UserService userService;
     private final TrialPeriodService trialPeriodService;
     private final ReportService reportService;
+    private final Information information;
+    private final TextConstants textConstants;
     private final Logger logger = LoggerFactory.getLogger(TelegramBotUpdatesListener.class);
 
     public void sendMessage(Long chatId, String message) {
@@ -76,7 +80,7 @@ public class MessageSender {
     }
     public void sendMenuStage(String shelterType, Long chatId) {
         logger.info("Вызвано меню выбора приюта - ID:{}", chatId);
-        ReplyMarkup replyMarkup = new ReplyMarkup(telegramBot, catShelterService, dogShelterService);
+        ReplyMarkup replyMarkup = new ReplyMarkup(telegramBot, catShelterService, dogShelterService,textConstants,information);
         User user = userService.getById(chatId);
         user.setShelterType(shelterType);
         userService.update(user);
